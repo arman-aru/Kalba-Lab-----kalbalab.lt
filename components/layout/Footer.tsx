@@ -17,7 +17,7 @@ export function Footer({ className }: { className?: string }) {
           <p className="text-xs text-gray-600 text-center">
             Made with ❤️ for the Bangladeshi community in Lithuania
             <br />
-            <span className="font-bengali">বাংলাদেশি কমিউনিটির জন্য ভালোবাসার সাথে তৈরি</span>
+            <span className="font-bengali">Developed by <a href="https://www.facebook.com/arman.salek.88/" target="_blank" rel="noopener noreferrer">Arman</a></span>
           </p>
         </div>
       </div>

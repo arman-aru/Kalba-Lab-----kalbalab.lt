@@ -63,7 +63,7 @@ export default function LandingPage() {
               href="/register"
               className="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-bold text-lg transition-all hover:scale-105 shadow-lg shadow-amber-500/20"
             >
-              <span className="font-bengali">বিনামূল্যে শুরু করুন</span>
+              <span className="font-bengali">শুরু করুন</span>
               <ArrowRight size={20} />
             </Link>
             <Link
@@ -214,7 +214,7 @@ export default function LandingPage() {
             href="/register"
             className="inline-flex items-center gap-2 px-10 py-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-bold text-xl transition-all hover:scale-105 shadow-xl shadow-amber-500/20"
           >
-            <span className="font-bengali">বিনামূল্যে শুরু করুন</span>
+            <span className="font-bengali">শুরু করুন</span>
             <ArrowRight size={22} />
           </Link>
           <p className="text-gray-600 text-sm mt-4">কোনো ক্রেডিট কার্ড লাগবে না · No credit card required</p>
