@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Camera, Star, BookOpen, FlipHorizontal, CheckCircle } from "lucide-react";
-import { ProgressRing } from "@/components/shared/ProgressRing";
+import { useRouter } from "next/navigation";
+import { Camera } from "lucide-react";
 import { StreakBadge } from "@/components/shared/StreakBadge";
 import { formatXP, calculateLevel } from "@/lib/xp";
+import { useAppStore } from "@/stores/useAppStore";
 
 const ACHIEVEMENTS = [
   { id: "1", icon: "🌅", title_lt: "Pirma diena", title_en: "First Day", title_bn: "প্রথম দিন", desc_bn: "প্রথম লগইন করেছেন", earned: true },
@@ -54,11 +55,22 @@ function ActivityGrid() {
 }
 
 export default function ProfilePage() {
+  const router = useRouter();
+  const user = useAppStore((s) => s.user);
   const [dailyGoal, setDailyGoal] = useState(50);
   const [preferredLang, setPreferredLang] = useState<"bn" | "en">("bn");
   const [audioAutoplay, setAudioAutoplay] = useState(false);
 
-  const totalXP = 1240;
+  if (!user) {
+    router.replace("/login");
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center">
+        <p className="text-gray-500 text-sm font-bengali">লগইন পেজে যাচ্ছে...</p>
+      </div>
+    );
+  }
+
+  const totalXP = user.total_xp ?? 0;
   const level = calculateLevel(totalXP);
 
   return (
@@ -74,14 +86,14 @@ export default function ProfilePage() {
           <div className="card-surface p-6 text-center">
             <div className="relative inline-block mb-3">
               <div className="w-20 h-20 rounded-full bg-amber-500/20 border-2 border-amber-500/30 flex items-center justify-center text-3xl font-bold text-amber-400 mx-auto">
-                A
+                {user.full_name?.[0]?.toUpperCase() ?? "?"}
               </div>
               <button className="absolute bottom-0 right-0 w-7 h-7 rounded-full bg-amber-500 flex items-center justify-center border-2 border-[var(--surface)]">
                 <Camera size={12} className="text-black" />
               </button>
             </div>
-            <h2 className="font-bold text-gray-100 text-lg">Arman Salek</h2>
-            <p className="text-gray-400 text-sm">armansalekofficial@gmail.com</p>
+            <h2 className="font-bold text-gray-100 text-lg">{user.full_name}</h2>
+            <p className="text-gray-400 text-sm">{user.email}</p>
             <div className="mt-3 flex items-center justify-center gap-2">
               <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-900/40 text-emerald-400">{level.title_en}</span>
               <span className="text-xs text-emerald-400 font-bengali">{level.title_bn}</span>
@@ -105,7 +117,7 @@ export default function ProfilePage() {
                 <p className="text-xs text-gray-500">Lessons</p>
               </div>
               <div className="text-center">
-                <StreakBadge count={12} size="md" />
+                <StreakBadge count={user.streak_count ?? 0} size="md" />
               </div>
             </div>
           </div>
