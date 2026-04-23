@@ -1,0 +1,38 @@
+import type { AlphabetLetter } from "@/types";
+
+export const lithuanianAlphabet: AlphabetLetter[] = [
+  { letter: "A", name: "a", sound_en: "like 'a' in 'father'", sound_bn: "বাংলা 'আ' এর মতো", example_word: "ačiū", example_meaning_en: "thank you", example_meaning_bn: "ধন্যবাদ", is_special: false },
+  { letter: "Ą", name: "a nosinė", sound_en: "long 'a' (nasal origin, now just long)", sound_bn: "লম্বা 'আআ' উচ্চারণ", example_word: "ąžuolas", example_meaning_en: "oak tree", example_meaning_bn: "ওক গাছ", is_special: true },
+  { letter: "B", name: "bė", sound_en: "like 'b' in 'bat'", sound_bn: "বাংলা 'ব' এর মতো", example_word: "brolis", example_meaning_en: "brother", example_meaning_bn: "ভাই", is_special: false },
+  { letter: "C", name: "cė", sound_en: "like 'ts' in 'cats'", sound_bn: "বাংলা 'ৎস' এর মতো", example_word: "cukrus", example_meaning_en: "sugar", example_meaning_bn: "চিনি", is_special: false },
+  { letter: "Č", name: "čė", sound_en: "like 'ch' in 'church'", sound_bn: "বাংলা 'চ' এর মতো", example_word: "čia", example_meaning_en: "here", example_meaning_bn: "এখানে", is_special: true },
+  { letter: "D", name: "dė", sound_en: "like 'd' in 'dog'", sound_bn: "বাংলা 'দ' এর মতো", example_word: "diena", example_meaning_en: "day", example_meaning_bn: "দিন", is_special: false },
+  { letter: "E", name: "e", sound_en: "like 'e' in 'bed'", sound_bn: "বাংলা 'এ' এর মতো", example_word: "eiti", example_meaning_en: "to go", example_meaning_bn: "যাওয়া", is_special: false },
+  { letter: "Ę", name: "e nosinė", sound_en: "like 'e' in 'there' (long)", sound_bn: "লম্বা 'এএ' উচ্চারণ", example_word: "ęsti", example_meaning_en: "to eat (archaic)", example_meaning_bn: "খাওয়া", is_special: true },
+  { letter: "Ė", name: "ė", sound_en: "like 'ay' in 'say'", sound_bn: "বাংলা 'এই' এর মতো", example_word: "ėsti", example_meaning_en: "to graze", example_meaning_bn: "ঘাস খাওয়া", is_special: true },
+  { letter: "F", name: "ef", sound_en: "like 'f' in 'fan'", sound_bn: "বাংলা 'ফ' এর মতো", example_word: "filmas", example_meaning_en: "film/movie", example_meaning_bn: "চলচ্চিত্র", is_special: false },
+  { letter: "G", name: "gė", sound_en: "like 'g' in 'go'", sound_bn: "বাংলা 'গ' এর মতো", example_word: "gerai", example_meaning_en: "okay/good", example_meaning_bn: "ঠিক আছে/ভালো", is_special: false },
+  { letter: "H", name: "ha", sound_en: "like 'h' in 'hat'", sound_bn: "বাংলা 'হ' এর মতো", example_word: "hobis", example_meaning_en: "hobby", example_meaning_bn: "শখ", is_special: false },
+  { letter: "I", name: "i", sound_en: "like 'i' in 'bit'", sound_bn: "বাংলা 'ই' এর মতো", example_word: "ir", example_meaning_en: "and", example_meaning_bn: "এবং", is_special: false },
+  { letter: "Į", name: "i nosinė", sound_en: "long 'ee' sound", sound_bn: "লম্বা 'ঈ' উচ্চারণ", example_word: "įeiti", example_meaning_en: "to enter", example_meaning_bn: "প্রবেশ করা", is_special: true },
+  { letter: "Y", name: "i ilgoji", sound_en: "long 'ee' like 'see'", sound_bn: "লম্বা 'ঈ' উচ্চারণ", example_word: "yra", example_meaning_en: "is/are", example_meaning_bn: "আছে/হয়", is_special: false },
+  { letter: "J", name: "jot", sound_en: "like 'y' in 'yes'", sound_bn: "বাংলা 'ইয়' এর মতো", example_word: "jis", example_meaning_en: "he", example_meaning_bn: "সে (পুরুষ)", is_special: false },
+  { letter: "K", name: "ka", sound_en: "like 'k' in 'key'", sound_bn: "বাংলা 'ক' এর মতো", example_word: "kalba", example_meaning_en: "language", example_meaning_bn: "ভাষা", is_special: false },
+  { letter: "L", name: "el", sound_en: "like 'l' in 'love'", sound_bn: "বাংলা 'ল' এর মতো", example_word: "labas", example_meaning_en: "hello", example_meaning_bn: "হ্যালো", is_special: false },
+  { letter: "M", name: "em", sound_en: "like 'm' in 'map'", sound_bn: "বাংলা 'ম' এর মতো", example_word: "mama", example_meaning_en: "mother", example_meaning_bn: "মা", is_special: false },
+  { letter: "N", name: "en", sound_en: "like 'n' in 'no'", sound_bn: "বাংলা 'ন' এর মতো", example_word: "namas", example_meaning_en: "house", example_meaning_bn: "বাড়ি", is_special: false },
+  { letter: "O", name: "o", sound_en: "like 'o' in 'more'", sound_bn: "বাংলা 'ও' এর মতো", example_word: "oras", example_meaning_en: "weather/air", example_meaning_bn: "আবহাওয়া", is_special: false },
+  { letter: "P", name: "pė", sound_en: "like 'p' in 'pan'", sound_bn: "বাংলা 'প' এর মতো", example_word: "pienas", example_meaning_en: "milk", example_meaning_bn: "দুধ", is_special: false },
+  { letter: "R", name: "er", sound_en: "rolled 'r' (trilled)", sound_bn: "জিহ্বা কম্পিত 'র' উচ্চারণ", example_word: "ranka", example_meaning_en: "hand", example_meaning_bn: "হাত", is_special: false },
+  { letter: "S", name: "es", sound_en: "like 's' in 'sun'", sound_bn: "বাংলা 'স' এর মতো", example_word: "sesuo", example_meaning_en: "sister", example_meaning_bn: "বোন", is_special: false },
+  { letter: "Š", name: "eš", sound_en: "like 'sh' in 'shop'", sound_bn: "বাংলা 'শ' এর মতো", example_word: "šeima", example_meaning_en: "family", example_meaning_bn: "পরিবার", is_special: true },
+  { letter: "T", name: "tė", sound_en: "like 't' in 'top'", sound_bn: "বাংলা 'ত' এর মতো", example_word: "taip", example_meaning_en: "yes", example_meaning_bn: "হ্যাঁ", is_special: false },
+  { letter: "U", name: "u", sound_en: "like 'u' in 'put'", sound_bn: "বাংলা 'উ' এর মতো", example_word: "ugnis", example_meaning_en: "fire", example_meaning_bn: "আগুন", is_special: false },
+  { letter: "Ų", name: "u nosinė", sound_en: "long 'oo' sound", sound_bn: "লম্বা 'উউ' উচ্চারণ", example_word: "ųsai", example_meaning_en: "moustache", example_meaning_bn: "গোঁফ", is_special: true },
+  { letter: "Ū", name: "u ilgoji", sound_en: "like 'oo' in 'moon'", sound_bn: "বাংলা 'ঊ' এর মতো", example_word: "ūkas", example_meaning_en: "fog/mist", example_meaning_bn: "কুয়াশা", is_special: true },
+  { letter: "V", name: "vė", sound_en: "like 'v' in 'van'", sound_bn: "বাংলা 'ভ' এর মতো", example_word: "vanduo", example_meaning_en: "water", example_meaning_bn: "পানি", is_special: false },
+  { letter: "Z", name: "zė", sound_en: "like 'z' in 'zoo'", sound_bn: "বাংলা 'জ' এর মতো", example_word: "žemė", example_meaning_en: "earth/ground", example_meaning_bn: "পৃথিবী/মাটি", is_special: false },
+  { letter: "Ž", name: "žė", sound_en: "like 's' in 'measure' or 'zh'", sound_bn: "'ঝ' এর মতো উচ্চারণ", example_word: "žuvis", example_meaning_en: "fish", example_meaning_bn: "মাছ", is_special: true },
+];
+
+export const specialCharacters = lithuanianAlphabet.filter(l => l.is_special);

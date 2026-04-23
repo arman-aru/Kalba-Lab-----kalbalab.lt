@@ -1,26 +1,193 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #0A0A0A;
+  --surface: #141414;
+  --border: #1F1F1F;
+  --foreground: #F5F5F5;
+  --foreground-muted: #9CA3AF;
+  --accent-amber: #F59E0B;
+  --accent-green: #10B981;
+  --accent-purple: #7C3AED;
+  --danger: #EF4444;
+}
+
+.light {
+  --background: #FAFAF9;
+  --surface: #FFFFFF;
+  --border: #E5E7EB;
+  --foreground: #111827;
+  --foreground-muted: #6B7280;
+  --accent-amber: #D97706;
+  --accent-green: #059669;
+  --accent-purple: #6D28D9;
+  --danger: #DC2626;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-surface: var(--surface);
+  --color-border-custom: var(--border);
+  --color-amber-accent: var(--accent-amber);
+  --color-green-accent: var(--accent-green);
+  --color-purple-accent: var(--accent-purple);
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-bengali: 'Noto Sans Bengali', sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.font-bengali {
+  font-family: 'Noto Sans Bengali', sans-serif;
+}
+
+/* Lithuanian text — amber bold */
+.lt-text {
+  color: #F59E0B;
+  font-weight: 700;
+  font-family: 'Inter', sans-serif;
+}
+
+/* English text */
+.en-text {
+  color: #9CA3AF;
+  font-family: 'Inter', sans-serif;
+}
+
+/* Bengali text — emerald green, Noto Sans Bengali */
+.bn-text {
+  color: #10B981;
+  font-family: 'Noto Sans Bengali', sans-serif;
+}
+
+/* Card surface */
+.card-surface {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--background);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #374151;
+}
+
+/* Audio button pulse animation */
+@keyframes pulse-amber {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.1); }
+}
+
+.audio-playing {
+  animation: pulse-amber 0.8s ease-in-out infinite;
+}
+
+/* Focus ring */
+:focus-visible {
+  outline: 2px solid #F59E0B;
+  outline-offset: 2px;
+}
+
+/* Loading skeleton shimmer */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--surface) 25%,
+    var(--border) 50%,
+    var(--surface) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 6px;
+}
+
+/* 3D flashcard flip */
+.flashcard-container {
+  perspective: 1200px;
+}
+
+.flashcard-inner {
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.flashcard-inner.flipped {
+  transform: rotateY(180deg);
+}
+
+.flashcard-front,
+.flashcard-back {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.flashcard-back {
+  transform: rotateY(180deg);
+}
+
+/* Prose / content area */
+.prose-lt h1, .prose-lt h2, .prose-lt h3 {
+  font-family: 'Inter', sans-serif;
+  color: var(--foreground);
+}
+
+.prose-lt p {
+  color: var(--foreground-muted);
+  line-height: 1.7;
+}
+
+/* Badge variants */
+.badge-noun { background: #1E3A5F; color: #60A5FA; }
+.badge-verb { background: #14532D; color: #4ADE80; }
+.badge-adj  { background: #451A03; color: #FCD34D; }
+.badge-adv  { background: #2D1B69; color: #A78BFA; }
+.badge-pron { background: #4A1942; color: #F0ABFC; }
+.badge-int  { background: #1C1917; color: #FDA4AF; }
+
+.badge-A1 { background: #14532D; color: #86EFAC; }
+.badge-A2 { background: #1E3A5F; color: #93C5FD; }
+.badge-B1 { background: #4C1D95; color: #C4B5FD; }
+
+/* Gradient backgrounds */
+.bg-amber-glow {
+  background: radial-gradient(ellipse at top left, rgba(245, 158, 11, 0.08) 0%, transparent 60%);
+}
+
+.bg-green-glow {
+  background: radial-gradient(ellipse at bottom right, rgba(16, 185, 129, 0.06) 0%, transparent 60%);
 }
