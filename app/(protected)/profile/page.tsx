@@ -80,8 +80,8 @@ export default function ProfilePage() {
                 <Camera size={12} className="text-black" />
               </button>
             </div>
-            <h2 className="font-bold text-gray-100 text-lg">Anika Rahman</h2>
-            <p className="text-gray-400 text-sm">anika@example.com</p>
+            <h2 className="font-bold text-gray-100 text-lg">Arman Salek</h2>
+            <p className="text-gray-400 text-sm">armansalekofficial@gmail.com</p>
             <div className="mt-3 flex items-center justify-center gap-2">
               <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-900/40 text-emerald-400">{level.title_en}</span>
               <span className="text-xs text-emerald-400 font-bengali">{level.title_bn}</span>
