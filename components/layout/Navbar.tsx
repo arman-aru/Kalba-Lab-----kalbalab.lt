@@ -2,178 +2,380 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
-import { Moon, Sun, Search, BookOpen, FlipHorizontal, GraduationCap, LayoutDashboard, User, LogOut, Menu, X, Volume2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import {
+  Search, BookOpen, FlipHorizontal, GraduationCap,
+  LayoutDashboard, LogOut, Menu, X, Sparkles, FlaskConical, Settings, ShieldCheck, Star,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/stores/useAppStore";
-import { StreakBadge } from "@/components/shared/StreakBadge";
+import { LanguageSwitcher } from "@/components/layout/LanguageSwitcher";
+import { getSupabaseBrowser } from "@/lib/supabase-browser";
+import { T, type TranslationKey } from "@/lib/i18n";
 
-const NAV_LINKS = [
-  { href: "/flashcards", label_en: "Flashcards", label_bn: "ফ্ল্যাশকার্ড", icon: FlipHorizontal },
-  { href: "/vocabulary", label_en: "Vocabulary", label_bn: "শব্দভাণ্ডার", icon: BookOpen },
-  { href: "/lessons", label_en: "Lessons", label_bn: "পাঠ", icon: BookOpen },
-  { href: "/exam-prep", label_en: "Exam Prep", label_bn: "পরীক্ষার প্রস্তুতি", icon: GraduationCap },
+const NAV_LINKS: { href: string; key: TranslationKey; icon: typeof BookOpen }[] = [
+  { href: "/flashcards", key: "flashcards", icon: FlipHorizontal },
+  { href: "/vocabulary", key: "vocabulary", icon: BookOpen },
+  { href: "/lessons",    key: "lessons",    icon: BookOpen },
+  { href: "/exam-prep",  key: "examPrep",   icon: GraduationCap },
 ];
 
 export function Navbar() {
   const pathname = usePathname();
-  const { theme, toggleTheme, uiLanguage, setUiLanguage, setSearchOpen, user } = useAppStore();
+  const router = useRouter();
+  const { uiLanguage, setSearchOpen, user } = useAppStore();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement>(null);
 
-  const label = (en: string, bn: string) => (uiLanguage === "bn" ? bn : en);
+  // Close user menu on outside click
+  useEffect(() => {
+    if (!userMenuOpen) return;
+    const onClick = (e: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+        setUserMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
+  }, [userMenuOpen]);
+
+  const onSignOut = async () => {
+    setSigningOut(true);
+    try {
+      await getSupabaseBrowser().auth.signOut();
+      setUserMenuOpen(false);
+      router.push("/");
+      router.refresh();
+    } finally {
+      setSigningOut(false);
+    }
+  };
+
+  const tr = (key: TranslationKey) => {
+    const entry = T[key] as Partial<Record<typeof uiLanguage, string>> & { en: string };
+    return entry[uiLanguage] ?? entry.en;
+  };
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  useEffect(() => {
+    if (mobileOpen) {
+      const prev = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+      return () => { document.body.style.overflow = prev; };
+    }
+  }, [mobileOpen]);
+
+  useEffect(() => { setMobileOpen(false); setUserMenuOpen(false); }, [pathname]);
+
+  const isActive = (href: string) => pathname === href || pathname.startsWith(href + "/");
+
+  const ctrlBtn =
+    "inline-flex items-center justify-center h-9 w-9 rounded-xl border border-white/10 bg-white/[0.03] text-gray-300 hover:text-amber-300 hover:border-amber-500/40 hover:bg-white/[0.06] transition-all";
 
   return (
-    <header className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--background)]/95 backdrop-blur-sm">
-      <nav className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between gap-4">
-        {/* Logo */}
-        <Link href="/" className="flex items-center gap-2 flex-shrink-0">
-          <span className="text-xl">🇱🇹</span>
-          <span className="font-bold text-amber-400 text-lg tracking-tight">LithuanianBD</span>
-        </Link>
+    <>
+      <header
+        className={cn(
+          "sticky top-0 z-50 transition-all duration-300",
+          scrolled
+            ? "border-b border-white/10 bg-[var(--background)]/75 backdrop-blur-xl shadow-[0_8px_32px_-12px_rgba(0,0,0,0.5)]"
+            : "border-b border-transparent bg-[var(--background)]/40 backdrop-blur-md"
+        )}
+      >
+        <nav className="max-w-7xl mx-auto px-3 sm:px-5 h-14 md:h-16 flex items-center gap-2 md:gap-4">
+          {/* Logo */}
+          <Link
+            href="/"
+            className="group flex items-center gap-2.5 shrink-0"
+            aria-label="Kalba Lab home"
+          >
+            <span className="relative inline-flex h-10 w-10 items-center justify-center rounded-xl bg-linear-to-br from-amber-400/30 via-amber-500/15 to-amber-600/10 ring-1 ring-amber-500/30 shadow-[0_4px_16px_-4px_rgba(245,158,11,0.45)] transition-transform group-hover:scale-105">
+              <FlaskConical size={20} className="text-amber-300 drop-shadow-[0_0_6px_rgba(245,158,11,0.6)]" strokeWidth={2.2} />
+            </span>
+            <span className="font-extrabold text-xl md:text-2xl tracking-tight bg-linear-to-r from-amber-300 via-amber-200 to-amber-400 bg-clip-text text-transparent">
+              Kalba<span className="ml-1">Lab</span>
+            </span>
+          </Link>
 
-        {/* Search trigger (desktop) */}
-        <button
-          onClick={() => setSearchOpen(true)}
-          className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg border border-[var(--border)] bg-[var(--surface)] text-gray-400 text-sm hover:border-amber-500/30 hover:text-gray-300 transition-all flex-1 max-w-xs"
-          aria-label="Open search"
-        >
-          <Search size={14} />
-          <span className="flex-1 text-left">{label("Search...", "খুঁজুন...")} </span>
-          <kbd className="text-xs border border-gray-700 rounded px-1.5 py-0.5 bg-gray-800">⌘K</kbd>
-        </button>
+          {/* Search trigger — md+ */}
+          <button
+            onClick={() => setSearchOpen(true)}
+            className="hidden md:flex items-center gap-2 px-3.5 h-9 rounded-xl border border-white/10 bg-white/[0.03] text-gray-400 text-sm hover:border-amber-500/40 hover:text-gray-200 hover:bg-white/[0.06] transition-all flex-1 max-w-[320px] ml-2 outline-none"
+            aria-label="Open search"
+          >
+            <Search size={14} className="text-gray-500" />
+            <span className="flex-1 text-left truncate">{tr("search")}</span>
+            <kbd className="hidden lg:inline-flex text-[10px] font-mono border border-white/10 rounded-md px-1.5 py-0.5 bg-black/40 text-gray-500">⌘K</kbd>
+          </button>
 
-        {/* Desktop nav links */}
-        <div className="hidden lg:flex items-center gap-1">
-          {NAV_LINKS.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={cn(
-                "px-3 py-1.5 rounded-lg text-sm font-medium transition-colors",
-                pathname.startsWith(link.href)
-                  ? "bg-amber-500/10 text-amber-400"
-                  : "text-gray-400 hover:text-gray-200 hover:bg-white/5"
-              )}
+          {/* Nav links — md+ */}
+          <div className="hidden md:flex items-center gap-0.5 lg:gap-1 ml-auto">
+            {NAV_LINKS.map((link) => {
+              const active = isActive(link.href);
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={cn(
+                    "relative px-3 lg:px-3.5 h-9 inline-flex items-center rounded-lg text-sm font-medium transition-colors",
+                    active ? "text-amber-300" : "text-gray-400 hover:text-gray-100"
+                  )}
+                >
+                  {active && (
+                    <span
+                      aria-hidden
+                      className="absolute inset-0 rounded-lg bg-amber-500/10 ring-1 ring-amber-500/30"
+                      style={{ animation: "navPillIn 220ms ease-out" }}
+                    />
+                  )}
+                  <span className="relative">{tr(link.key)}</span>
+                </Link>
+              );
+            })}
+          </div>
+
+          {/* Right controls */}
+          <div className="flex items-center gap-1.5 flex-shrink-0 ml-auto md:ml-2">
+            {/* Mobile search */}
+            <button
+              onClick={() => setSearchOpen(true)}
+              className={cn(ctrlBtn, "md:hidden")}
+              aria-label="Open search"
             >
-              {label(link.label_en, link.label_bn)}
-            </Link>
-          ))}
-        </div>
+              <Search size={16} />
+            </button>
 
-        {/* Right controls */}
-        <div className="flex items-center gap-2 flex-shrink-0">
-          {/* Language toggle */}
-          <button
-            onClick={() => setUiLanguage(uiLanguage === "bn" ? "en" : "bn")}
-            className="hidden sm:flex items-center gap-1 text-xs border border-[var(--border)] rounded-lg px-2 py-1.5 text-gray-400 hover:text-gray-200 hover:border-amber-500/30 transition-all"
-            title="Toggle UI language"
-          >
-            <span>{uiLanguage === "bn" ? "বাংলা" : "EN"}</span>
-          </button>
+            <LanguageSwitcher />
 
-          {/* Theme toggle */}
-          <button
-            onClick={toggleTheme}
-            className="p-1.5 rounded-lg border border-[var(--border)] text-gray-400 hover:text-gray-200 hover:border-amber-500/30 transition-all"
-            aria-label="Toggle theme"
-          >
-            {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
-          </button>
+            {user ? (
+              <div className="relative" ref={userMenuRef}>
+                <button
+                  onClick={() => setUserMenuOpen(!userMenuOpen)}
+                  className="group flex items-center gap-2 h-9 pl-1 pr-2.5 rounded-xl bg-linear-to-br from-amber-500/30 to-amber-500/10 border border-amber-500/30 hover:from-amber-500/40 transition-all"
+                  aria-label="Account menu"
+                  aria-expanded={userMenuOpen}
+                >
+                  <span className="relative inline-flex h-7 w-7 items-center justify-center rounded-lg overflow-hidden bg-amber-500/20 ring-1 ring-amber-500/40 text-amber-200 font-bold text-xs">
+                    {user.avatar_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={user.avatar_url} alt="" className="absolute inset-0 h-full w-full object-cover" />
+                    ) : (
+                      <>{user.full_name?.[0]?.toUpperCase() ?? user.email?.[0]?.toUpperCase() ?? "U"}</>
+                    )}
+                  </span>
+                  <span className="hidden lg:flex flex-col items-start leading-tight max-w-[110px]">
+                    <span className="text-[11px] text-amber-200/70 -mb-0.5">Hi,</span>
+                    <span className="text-xs font-semibold text-amber-200 truncate w-full">
+                      {(() => {
+                        const raw = user.full_name?.split(" ")[0] || user.email?.split("@")[0] || "";
+                        return raw.length > 5 ? `${raw.slice(0, 5)}..` : raw;
+                      })()}
+                    </span>
+                  </span>
+                </button>
 
-          {/* Streak (if logged in) */}
-          {user && <StreakBadge count={user.streak_count} size="sm" />}
+                {userMenuOpen && (
+                  <div
+                    className="absolute right-0 top-12 w-72 rounded-2xl border border-white/10 bg-[var(--surface)]/95 backdrop-blur-xl shadow-2xl py-1.5 z-50 origin-top-right overflow-hidden"
+                    style={{ animation: "menuIn 180ms ease-out" }}
+                  >
+                    {/* Header card */}
+                    <div className="px-4 pt-4 pb-3 bg-linear-to-br from-amber-500/10 via-transparent to-transparent border-b border-white/10">
+                      <div className="flex items-center gap-3">
+                        <span className="relative inline-flex h-11 w-11 items-center justify-center rounded-xl overflow-hidden bg-amber-500/20 ring-1 ring-amber-500/40 text-amber-200 font-bold">
+                          {user.avatar_url ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={user.avatar_url} alt="" className="absolute inset-0 h-full w-full object-cover" />
+                          ) : (
+                            <>{user.full_name?.[0]?.toUpperCase() ?? user.email?.[0]?.toUpperCase() ?? "U"}</>
+                          )}
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-semibold text-gray-100 truncate">{user.full_name || "Learner"}</p>
+                          <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                        </div>
+                      </div>
+                      <div className="mt-3 grid grid-cols-2 gap-2">
+                        <div className="rounded-lg bg-black/30 px-2.5 py-1.5">
+                          <p className="text-[10px] uppercase tracking-wider text-gray-500">XP</p>
+                          <p className="text-sm font-bold text-amber-300 tabular-nums flex items-center gap-1"><Star size={11} className="fill-amber-300" /> {(user.total_xp ?? 0).toLocaleString()}</p>
+                        </div>
+                        <div className="rounded-lg bg-black/30 px-2.5 py-1.5">
+                          <p className="text-[10px] uppercase tracking-wider text-gray-500">Streak</p>
+                          <p className="text-sm font-bold text-orange-300 tabular-nums">🔥 {user.streak_count ?? 0}</p>
+                        </div>
+                      </div>
+                    </div>
 
-          {/* User menu */}
-          {user ? (
-            <div className="relative">
-              <button
-                onClick={() => setUserMenuOpen(!userMenuOpen)}
-                className="w-8 h-8 rounded-full bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400 font-bold text-sm hover:bg-amber-500/30 transition-all"
-              >
-                {user.full_name?.[0]?.toUpperCase() ?? "U"}
-              </button>
-              {userMenuOpen && (
-                <div className="absolute right-0 top-10 w-48 rounded-xl border border-[var(--border)] bg-[var(--surface)] shadow-xl py-1 z-50">
-                  <div className="px-3 py-2 border-b border-[var(--border)]">
-                    <p className="text-sm font-medium text-gray-200">{user.full_name}</p>
-                    <p className="text-xs text-gray-500">{user.email}</p>
+                    {/* Links */}
+                    <div className="py-1">
+                      <Link
+                        href="/profile"
+                        onClick={() => setUserMenuOpen(false)}
+                        className="flex items-center gap-2.5 px-3 py-2 text-sm text-gray-300 hover:text-amber-300 hover:bg-white/5 transition-colors"
+                      >
+                        <LayoutDashboard size={14} />
+                        {tr("dashboard")}
+                      </Link>
+                    </div>
+
+                    {/* Mobile-only main nav (mirrors the desktop top-bar links) */}
+                    <div className="md:hidden border-t border-white/10 py-1">
+                      <p className="px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-gray-500">Navigate</p>
+                      {NAV_LINKS.map((link) => (
+                        <Link
+                          key={`mob-${link.href}`}
+                          href={link.href}
+                          onClick={() => setUserMenuOpen(false)}
+                          className="flex items-center gap-2.5 px-3 py-2 text-sm text-gray-300 hover:text-amber-300 hover:bg-white/5 transition-colors"
+                        >
+                          <link.icon size={14} />
+                          {tr(link.key)}
+                        </Link>
+                      ))}
+                    </div>
+
+                    {/* Settings link */}
+                    <div className="border-t border-white/10 py-1">
+                      <Link
+                        href="/profile"
+                        onClick={() => setUserMenuOpen(false)}
+                        className="flex items-center gap-2.5 px-3 py-2 text-sm text-gray-300 hover:text-amber-300 hover:bg-white/5 transition-colors"
+                      >
+                        <Settings size={14} />
+                        Settings
+                      </Link>
+                    </div>
+
+                    {/* Admin shortcut */}
+                    {user.is_admin && (
+                      <div className="border-t border-white/10 py-1">
+                        <Link
+                          href="/admin"
+                          onClick={() => setUserMenuOpen(false)}
+                          className="flex items-center gap-2.5 px-3 py-2 text-sm text-amber-300 hover:bg-amber-500/10 transition-colors"
+                        >
+                          <ShieldCheck size={14} />
+                          Admin dashboard
+                        </Link>
+                      </div>
+                    )}
+
+                    {/* Sign out */}
+                    <div className="border-t border-white/10 py-1">
+                      <button
+                        onClick={onSignOut}
+                        disabled={signingOut}
+                        className="flex items-center gap-2.5 px-3 py-2 text-sm text-red-400 hover:bg-red-500/10 w-full transition-colors disabled:opacity-60"
+                      >
+                        <LogOut size={14} />
+                        {signingOut ? "Signing out…" : tr("signOut")}
+                      </button>
+                    </div>
                   </div>
-                  {[
-                    { href: "/dashboard", icon: LayoutDashboard, label: label("Dashboard", "ড্যাশবোর্ড") },
-                    { href: "/profile", icon: User, label: label("Profile", "প্রোফাইল") },
-                    { href: "/flashcards", icon: FlipHorizontal, label: label("Flashcards", "ফ্ল্যাশকার্ড") },
-                  ].map((item) => (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      onClick={() => setUserMenuOpen(false)}
-                      className="flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:text-gray-100 hover:bg-white/5 transition-colors"
-                    >
-                      <item.icon size={14} />
-                      {item.label}
-                    </Link>
-                  ))}
-                  <div className="border-t border-[var(--border)] mt-1">
-                    <button className="flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:bg-red-500/10 w-full transition-colors">
-                      <LogOut size={14} />
-                      {label("Sign Out", "লগ আউট")}
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          ) : (
-            <Link
-              href="/login"
-              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-black text-sm font-semibold transition-colors"
-            >
-              {label("Sign In", "লগইন")}
-            </Link>
-          )}
-
-          {/* Mobile menu toggle */}
-          <button
-            className="lg:hidden p-1.5 rounded-lg border border-[var(--border)] text-gray-400"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label="Toggle mobile menu"
-          >
-            {mobileMenuOpen ? <X size={16} /> : <Menu size={16} />}
-          </button>
-        </div>
-      </nav>
-
-      {/* Mobile menu */}
-      {mobileMenuOpen && (
-        <div className="lg:hidden border-t border-[var(--border)] bg-[var(--surface)] px-4 py-3">
-          <div className="flex flex-col gap-1">
-            {NAV_LINKS.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                onClick={() => setMobileMenuOpen(false)}
-                className={cn(
-                  "px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
-                  pathname.startsWith(link.href)
-                    ? "bg-amber-500/10 text-amber-400"
-                    : "text-gray-300 hover:bg-white/5"
                 )}
+              </div>
+            ) : (
+              <Link
+                href="/login"
+                className="hidden sm:inline-flex items-center gap-1.5 px-4 h-9 rounded-xl bg-linear-to-b from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-black text-sm font-bold transition-all shadow-[0_6px_20px_-6px_rgba(245,158,11,0.6)]"
               >
-                {label(link.label_en, link.label_bn)}
+                <Sparkles size={14} />
+                {tr("signIn")}
               </Link>
-            ))}
+            )}
+
+            {/* Mobile menu toggle — only when signed out (signed-in users use the avatar dropdown) */}
+            <button
+              className={cn(ctrlBtn, "md:hidden", user && "hidden")}
+              onClick={() => setMobileOpen(!mobileOpen)}
+              aria-label="Toggle navigation"
+              aria-expanded={mobileOpen}
+            >
+              <span className="relative block w-4 h-4">
+                <Menu size={16} className={cn("absolute inset-0 transition-all", mobileOpen ? "opacity-0 -rotate-90 scale-50" : "opacity-100 rotate-0 scale-100")} />
+                <X size={16} className={cn("absolute inset-0 transition-all", mobileOpen ? "opacity-100 rotate-0 scale-100" : "opacity-0 rotate-90 scale-50")} />
+              </span>
+            </button>
+          </div>
+        </nav>
+      </header>
+
+      {/* Mobile drawer */}
+      <div
+        className={cn(
+          "md:hidden fixed inset-0 z-40 transition-opacity duration-300",
+          mobileOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+        )}
+        aria-hidden={!mobileOpen}
+      >
+        <div
+          className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+          onClick={() => setMobileOpen(false)}
+        />
+        <div
+          className={cn(
+            "absolute top-14 left-2 right-2 rounded-2xl border border-white/10 bg-[var(--surface)]/95 backdrop-blur-xl shadow-2xl transition-all duration-300 overflow-hidden",
+            mobileOpen ? "translate-y-0 opacity-100" : "-translate-y-4 opacity-0"
+          )}
+        >
+          <div className="p-3">
+            <p className="px-2 pb-2 text-[10px] font-semibold uppercase tracking-wider text-gray-500">
+              Navigate
+            </p>
+            <div className="flex flex-col gap-1">
+              {NAV_LINKS.map((link, i) => {
+                const active = isActive(link.href);
+                return (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    onClick={() => setMobileOpen(false)}
+                    className={cn(
+                      "flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all",
+                      active
+                        ? "bg-amber-500/10 text-amber-300 ring-1 ring-amber-500/30"
+                        : "text-gray-300 hover:bg-white/5 hover:text-gray-100"
+                    )}
+                    style={{ animation: mobileOpen ? `slideIn 280ms ease-out ${i * 40}ms backwards` : undefined }}
+                  >
+                    <span className={cn(
+                      "inline-flex h-8 w-8 items-center justify-center rounded-lg",
+                      active ? "bg-amber-500/15 text-amber-300" : "bg-white/5 text-gray-400"
+                    )}>
+                      <link.icon size={15} />
+                    </span>
+                    <span className="flex-1">{tr(link.key)}</span>
+                    {active && <span className="h-1.5 w-1.5 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(245,158,11,0.8)]" />}
+                  </Link>
+                );
+              })}
+            </div>
+
+
             {!user && (
               <Link
                 href="/login"
-                className="mt-2 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-black text-sm font-semibold"
-                onClick={() => setMobileMenuOpen(false)}
+                onClick={() => setMobileOpen(false)}
+                className="mt-3 flex items-center justify-center gap-1.5 px-3 py-3 rounded-xl bg-linear-to-b from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-black text-sm font-bold transition-all"
               >
-                {label("Sign In", "লগইন")}
+                <Sparkles size={14} />
+                {tr("signIn")}
               </Link>
             )}
           </div>
         </div>
-      )}
-    </header>
+      </div>
+    </>
   );
 }

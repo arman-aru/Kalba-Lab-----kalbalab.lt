@@ -1,5 +1,6 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
+import type { UILanguage } from "@/lib/i18n";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -10,11 +11,14 @@ export function formatXP(xp: number): string {
   return xp.toString();
 }
 
-export function getGreeting(name: string): { en: string; bn: string } {
-  const hour = new Date().getHours();
-  if (hour < 12) return { en: `Good morning, ${name}!`, bn: `শুভ সকাল, ${name}! 🌅` };
-  if (hour < 17) return { en: `Good afternoon, ${name}!`, bn: `শুভ দুপুর, ${name}! ☀️` };
-  return { en: `Good evening, ${name}!`, bn: `শুভ সন্ধ্যা, ${name}! 🌙` };
+const GREETING: Partial<Record<UILanguage, string>> & { en: string } = {
+  en: "Good day", bn: "শুভ দিন", az: "Xeyirli gün", hi: "शुभ दिन", ky: "Кутмандуу күн", tg: "Рӯз ба хайр", uz: "Hayrli kun",
+};
+
+export function getGreeting(name: string, lang: UILanguage = "en"): string {
+  const base = GREETING[lang] ?? GREETING.en;
+  const trimmed = name?.trim();
+  return trimmed ? `${base}, ${trimmed}! 👋` : `${base}! 👋`;
 }
 
 export function getPosColor(pos: string): string {

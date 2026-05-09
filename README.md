@@ -1,6 +1,6 @@
-# 🇱🇹 LithuanianBD — লিথুয়ানিয়ান ভাষা শেখার অ্যাপ
+# 🇱🇹 KalbaLab — Learn Lithuanian, in your language
 
-A comprehensive Lithuanian language learning app built specifically for **Bangladeshi people** living in or moving to Lithuania. Every lesson, word, and explanation is presented in three languages: **Lithuanian · English · বাংলা**.
+A multilingual Lithuanian language learning app for international communities living in or moving to Lithuania. Lessons, vocabulary, and explanations are available in **English · Bengali · Hindi · Uzbek · Tajik · Kyrgyz · Azerbaijani**, with native Lithuanian audio on every word and complete A1 exam preparation.
 
 ## Features
 
@@ -52,7 +52,7 @@ types/             # Shared TypeScript interfaces
 
 ```bash
 git clone <repo-url>
-cd LithuanianBD
+cd KalbaLab
 npm install
 ```
 
@@ -196,4 +196,4 @@ For best Lithuanian TTS quality, use Chrome or Edge. The app falls back graceful
 ## License
 
 MIT — build on it freely.
-# LithuanianBD
+# KalbaLab

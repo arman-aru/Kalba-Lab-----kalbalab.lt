@@ -1,0 +1,49 @@
+-- ============================================================
+-- Avatars storage bucket + RLS policies
+-- Run this in Supabase SQL editor. Idempotent.
+-- ============================================================
+
+-- Create the bucket (public-read so we can use the public URL).
+insert into storage.buckets (id, name, public)
+values ('avatars', 'avatars', true)
+on conflict (id) do nothing;
+
+-- Anyone can view (the bucket is public, but be explicit).
+drop policy if exists "Public can view avatars" on storage.objects;
+create policy "Public can view avatars"
+  on storage.objects
+  for select
+  to public
+  using (bucket_id = 'avatars');
+
+-- Authenticated users can upload to a folder named after their own user id.
+-- (Path convention: <uid>/<filename>)
+drop policy if exists "Users can upload own avatar" on storage.objects;
+create policy "Users can upload own avatar"
+  on storage.objects
+  for insert
+  to authenticated
+  with check (
+    bucket_id = 'avatars'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+drop policy if exists "Users can update own avatar" on storage.objects;
+create policy "Users can update own avatar"
+  on storage.objects
+  for update
+  to authenticated
+  using (
+    bucket_id = 'avatars'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+drop policy if exists "Users can delete own avatar" on storage.objects;
+create policy "Users can delete own avatar"
+  on storage.objects
+  for delete
+  to authenticated
+  using (
+    bucket_id = 'avatars'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );

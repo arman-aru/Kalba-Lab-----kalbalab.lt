@@ -7,6 +7,7 @@ import { useAppStore } from "@/stores/useAppStore";
 import { vocabularyData } from "@/data/vocabulary";
 import { AudioButton } from "@/components/audio/AudioButton";
 import Link from "next/link";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface SearchResult {
   type: "vocab" | "lesson";
@@ -47,6 +48,7 @@ function searchItems(query: string): SearchResult[] {
 
 export function SpotlightSearch() {
   const { searchOpen, setSearchOpen, recentSearches, addRecentSearch } = useAppStore();
+  const { t, lang } = useTranslation();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -105,8 +107,8 @@ export function SpotlightSearch() {
             value={query}
             onChange={(e) => handleSearch(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="শব্দ খুঁজুন... / Search vocabulary & lessons..."
-            className="flex-1 bg-transparent text-gray-200 placeholder-gray-500 outline-none text-sm"
+            placeholder={t("searchPlaceholder")}
+            className="flex-1 bg-transparent text-gray-200 placeholder-gray-500 text-sm border-0 outline-none ring-0 focus:outline-none focus:ring-0 focus:border-0 focus-visible:outline-none focus-visible:ring-0 appearance-none"
           />
           <button onClick={() => setSearchOpen(false)} className="text-gray-500 hover:text-gray-300">
             <X size={16} />
@@ -117,7 +119,7 @@ export function SpotlightSearch() {
         <div className="max-h-80 overflow-y-auto">
           {query === "" && recentSearches.length > 0 && (
             <div className="px-4 py-2">
-              <p className="text-xs text-gray-500 mb-2 flex items-center gap-1"><Clock size={12} /> Recent</p>
+              <p className="text-xs text-gray-500 mb-2 flex items-center gap-1"><Clock size={12} /> {t("recent")}</p>
               {recentSearches.map((s) => (
                 <button key={s} onClick={() => handleSearch(s)} className="block w-full text-left text-sm text-gray-400 hover:text-gray-200 py-1 transition-colors">
                   {s}
@@ -144,7 +146,7 @@ export function SpotlightSearch() {
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-gray-400">{r.subtitle}</span>
-                  {r.bengali && <span className="text-xs bn-text font-bengali">{r.bengali}</span>}
+                  {lang === "bn" && r.bengali && <span className="text-xs bn-text font-bengali">{r.bengali}</span>}
                 </div>
               </div>
             </Link>
@@ -152,16 +154,16 @@ export function SpotlightSearch() {
 
           {query && results.length === 0 && (
             <div className="px-4 py-8 text-center">
-              <p className="text-gray-500 text-sm">কোনো ফলাফল পাওয়া যায়নি</p>
-              <p className="text-gray-600 text-xs mt-1">No results found for "{query}"</p>
+              <p className="text-gray-500 text-sm">{t("noResults")}</p>
+              <p className="text-gray-600 text-xs mt-1">&ldquo;{query}&rdquo;</p>
             </div>
           )}
         </div>
 
         <div className="px-4 py-2 border-t border-[var(--border)] flex items-center gap-4 text-xs text-gray-600">
-          <span><kbd className="bg-gray-800 rounded px-1">↑↓</kbd> navigate</span>
-          <span><kbd className="bg-gray-800 rounded px-1">↵</kbd> select</span>
-          <span><kbd className="bg-gray-800 rounded px-1">esc</kbd> close</span>
+          <span><kbd className="bg-gray-800 rounded px-1">↑↓</kbd> {t("navigate")}</span>
+          <span><kbd className="bg-gray-800 rounded px-1">↵</kbd> {t("select")}</span>
+          <span><kbd className="bg-gray-800 rounded px-1">esc</kbd> {t("close")}</span>
         </div>
       </div>
     </div>

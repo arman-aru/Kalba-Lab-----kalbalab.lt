@@ -1,110 +1,206 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Star } from "lucide-react";
+import { ArrowRight, Star, Sparkles, Volume2, GraduationCap, Globe2, Headphones, BookOpenCheck, BarChart3 } from "lucide-react";
 import { AudioButton } from "@/components/audio/AudioButton";
+import { AnimatedBackground } from "@/components/ui/AnimatedBackground";
+import { TestimonialSlider } from "@/components/shared/TestimonialSlider";
+import { useTranslation } from "@/hooks/useTranslation";
+import type { TranslationKey, UILanguage } from "@/lib/i18n";
 
-const SAMPLE_PHRASES = [
-  { lt: "Labas!", en: "Hello!", bn: "হ্যালো!" },
-  { lt: "Ačiū labai!", en: "Thank you very much!", bn: "অনেক ধন্যবাদ!" },
-  { lt: "Kur yra stotis?", en: "Where is the station?", bn: "স্টেশন কোথায়?" },
-  { lt: "Aš esu iš Bangladešo.", en: "I am from Bangladesh.", bn: "আমি বাংলাদেশ থেকে।" },
+type Multi = Partial<Record<UILanguage, string>> & { en: string };
+
+function formatLearners(n: number): string {
+  return n.toLocaleString("en-US");
+}
+
+const SAMPLE_PHRASES: { lt: string; key: "phLabas" | "phAciu" | "phStotis" | "phFromBD" }[] = [
+  { lt: "Labas!",                 key: "phLabas" },
+  { lt: "Ačiū labai!",            key: "phAciu" },
+  { lt: "Kur yra stotis?",        key: "phStotis" },
+  { lt: "Aš esu iš užsienio.",    key: "phFromBD" },
 ];
 
-const FEATURES = [
-  { icon: "🔊", title_en: "Audio on Everything", title_bn: "সব কিছুতে অডিও", desc_bn: "প্রতিটি শব্দ ও বাক্যে স্পিকার বাটন — লিথুয়ানিয়ান উচ্চারণ শুনুন" },
-  { icon: "🇧🇩", title_en: "Bengali Explanations", title_bn: "বাংলায় ব্যাখ্যা", desc_bn: "সব ব্যাকরণ, শব্দ ও ব্যাখ্যা বাংলায় — মাতৃভাষায় শিখুন" },
-  { icon: "🎓", title_en: "A1 Exam Prep", title_bn: "A1 পরীক্ষার প্রস্তুতি", desc_bn: "লিথুয়ানিয়ার আবাসিক পরীক্ষার জন্য সম্পূর্ণ প্রস্তুতি কোর্স" },
-  { icon: "📚", title_en: "500+ Vocabulary", title_bn: "৫০০+ শব্দভাণ্ডার", desc_bn: "A1 স্তরের সমস্ত গুরুত্বপূর্ণ শব্দ অডিও ও বাংলা অর্থসহ" },
-  { icon: "💬", title_en: "Real Dialogues", title_bn: "বাস্তব কথোপকথন", desc_bn: "দোকানে, হাসপাতালে, রাস্তায় — বাস্তব পরিস্থিতির কথোপকথন" },
-  { icon: "📊", title_en: "Progress Tracking", title_bn: "অগ্রগতি ট্র্যাকিং", desc_bn: "স্পেসড রিপিটিশন + XP সিস্টেম + ধারাবাহিক স্ট্রিক" },
+const PHRASE_TRANSLATIONS: Record<typeof SAMPLE_PHRASES[number]["key"], Multi> = {
+  phLabas:  { en: "Hello!",                bn: "হ্যালো!",                az: "Salam!",            hi: "नमस्ते!",                ky: "Салам!",            tg: "Салом!",                  uz: "Salom!" },
+  phAciu:   { en: "Thank you very much!",  bn: "অনেক ধন্যবাদ!",          az: "Çox sağ olun!",      hi: "बहुत धन्यवाद!",            ky: "Чоң рахмат!",        tg: "Ташаккури зиёд!",         uz: "Katta rahmat!" },
+  phStotis: { en: "Where is the station?", bn: "স্টেশন কোথায়?",         az: "Stansiya haradadır?", hi: "स्टेशन कहाँ है?",         ky: "Бекет кайда?",       tg: "Истгоҳ дар куҷост?",       uz: "Bekat qayerda?" },
+  phFromBD: { en: "I'm from abroad.",      bn: "আমি বিদেশ থেকে।",         az: "Mən xaricdənəm.",   hi: "मैं विदेश से हूँ।",         ky: "Мен чет өлкөдөнмүн.", tg: "Ман аз хориҷа ҳастам.",     uz: "Men chet eldanman." },
+};
+
+// Static portion of the stats bar. The "learners" stat is filled in
+// at runtime from /api/stats (live Supabase count).
+const STATIC_STATS: { icon: typeof Globe2; key: TranslationKey; value: string }[] = [
+  { icon: Globe2,         key: "statLanguages", value: "9" },
+  { icon: BookOpenCheck,  key: "statWords",     value: "500+" },
+  { icon: Sparkles,       key: "statLessons",   value: "45+" },
 ];
 
-const EXAM_SECTIONS = [
-  { key: "Skaitymas", en: "Reading", bn: "পড়া", desc_bn: "ছোট টেক্সট, বিজ্ঞপ্তি, ফর্ম পড়ে বুঝতে পারা" },
-  { key: "Rašymas", en: "Writing", bn: "লেখা", desc_bn: "ফর্ম পূরণ ও ৫০-৮০ শব্দের বার্তা লেখা" },
-  { key: "Klausymas", en: "Listening", bn: "শোনা", desc_bn: "সংলাপ ও ঘোষণা শুনে প্রশ্নের উত্তর দেওয়া" },
-  { key: "Kalbėjimas", en: "Speaking", bn: "বলা", desc_bn: "পরীক্ষকের সাথে মৌখিক সাক্ষাৎকার" },
+const FEATURES: { icon: typeof Volume2; title: TranslationKey; desc: TranslationKey; tint: string }[] = [
+  { icon: Volume2,        title: "feat1Title", desc: "feat1Desc", tint: "from-amber-500/20 to-amber-500/5 text-amber-300" },
+  { icon: Globe2,         title: "feat2Title", desc: "feat2Desc", tint: "from-emerald-500/20 to-emerald-500/5 text-emerald-300" },
+  { icon: GraduationCap,  title: "feat3Title", desc: "feat3Desc", tint: "from-fuchsia-500/20 to-fuchsia-500/5 text-fuchsia-300" },
+  { icon: BookOpenCheck,  title: "feat4Title", desc: "feat4Desc", tint: "from-blue-500/20 to-blue-500/5 text-blue-300" },
+  { icon: Headphones,     title: "feat5Title", desc: "feat5Desc", tint: "from-cyan-500/20 to-cyan-500/5 text-cyan-300" },
+  { icon: BarChart3,      title: "feat6Title", desc: "feat6Desc", tint: "from-rose-500/20 to-rose-500/5 text-rose-300" },
 ];
 
-const TESTIMONIALS = [
-  { name: "শাহজালাল রহমান", city: "Vilnius", text: "লিথুয়ানিয়ানBD ছাড়া A1 পরীক্ষা পাস করা সম্ভব হতো না। বাংলায় ব্যাখ্যা সবকিছু সহজ করে দিয়েছে।", rating: 5 },
-  { name: "আরমান", city: "Kaunas", text: "অডিও বাটন দারুণ কাজের — উচ্চারণ শুনে শুনে শিখেছি। এখন দোকানে একা কথা বলতে পারি!", rating: 5 },
-  { name: "হামিদ", city: "Klaipėda", text: "ফ্ল্যাশকার্ড সিস্টেম অসাধারণ। মেট্রোতে যেতে যেতে শব্দ শিখি। দারুণ অ্যাপ!", rating: 5 },
+const STEPS: { n: string; title: TranslationKey; desc: TranslationKey }[] = [
+  { n: "01", title: "step1Title", desc: "step1Desc" },
+  { n: "02", title: "step2Title", desc: "step2Desc" },
+  { n: "03", title: "step3Title", desc: "step3Desc" },
 ];
 
 export default function LandingPage() {
-  return (
-    <div className="min-h-screen">
-      {/* HERO */}
-      <section className="relative overflow-hidden py-20 md:py-28">
-        <div className="absolute inset-0 -z-10">
-          <div className="absolute top-0 left-1/4 w-72 h-72 bg-amber-500/5 rounded-full blur-3xl" />
-          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-emerald-500/5 rounded-full blur-3xl" />
-        </div>
+  const { t, lang } = useTranslation();
+  const [learners, setLearners] = useState<number | null>(null);
 
-        <div className="max-w-4xl mx-auto px-4 text-center">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-400 text-sm mb-6">
-            🇱🇹 🇧🇩 বাংলাদেশিদের জন্য লিথুয়ানিয়ান ভাষা শিক্ষা
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/stats")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (!cancelled && data && typeof data.learners === "number") {
+          setLearners(data.learners);
+        }
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+
+  const stats = [
+    ...STATIC_STATS,
+    {
+      icon: BarChart3,
+      key: "statLearners" as TranslationKey,
+      // While loading we show a soft em-dash so the layout doesn't shift
+      // and we never display a fake number.
+      value: learners === null ? "—" : formatLearners(learners),
+    },
+  ];
+
+  return (
+    <div className="relative min-h-screen overflow-x-hidden isolate">
+      <AnimatedBackground />
+      <div className="relative z-10">
+
+      {/* HERO */}
+      <section className="relative pt-20 md:pt-28 pb-24">
+        <div className="max-w-5xl mx-auto px-4 text-center">
+          {/* Badge */}
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-300 text-sm mb-8 backdrop-blur-sm shadow-[0_0_30px_rgba(245,158,11,0.15)]">
+            <span>🇱🇹 {t("homeBadge")}</span>
           </div>
 
-          <h1 className="text-4xl md:text-6xl font-extrabold mb-4 leading-tight">
-            <span className="text-amber-400">লিথুয়ানিয়ান শিখুন</span>
+          {/* Headline */}
+          <h1 className="text-5xl md:text-7xl font-extrabold leading-[1.05] tracking-tight mb-5">
+            <span className="text-shimmer">{t("homeHero1")}</span>
             <br />
-            <span className="text-gray-200">সহজে, বাংলায়</span>
+            <span className="text-gray-100">{t("homeHero2")}</span>
           </h1>
-          <p className="text-xl md:text-2xl text-emerald-400 font-bengali mb-2">
-            প্রতিটি শব্দ — বাংলা অর্থসহ, অডিওসহ
-          </p>
-          <p className="text-gray-400 text-lg mb-10 max-w-2xl mx-auto">
-            Learn Lithuanian with Bengali explanations, native audio on every word, and complete A1 exam preparation — built specifically for Bangladeshis in Lithuania.
-          </p>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+          <p className="text-lg md:text-xl text-emerald-300/90 font-medium mb-3">{t("homeSubtitle1")}</p>
+          <p className="text-gray-400 text-base md:text-lg mb-10 max-w-2xl mx-auto leading-relaxed">{t("homeSubtitle2")}</p>
+
+          {/* CTAs */}
+          <div className="flex flex-col sm:flex-row gap-3 justify-center mb-6">
             <Link
               href="/register"
-              className="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-bold text-lg transition-all hover:scale-105 shadow-lg shadow-amber-500/20"
+              className="group relative inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-bold text-base transition-all hover:scale-[1.03] shadow-lg shadow-amber-500/25"
             >
-              <span className="font-bengali">শুরু করুন</span>
-              <ArrowRight size={20} />
+              <span>{t("start")}</span>
+              <ArrowRight size={18} className="transition-transform group-hover:translate-x-0.5" />
             </Link>
             <Link
               href="/vocabulary"
-              className="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl border border-[var(--border)] hover:border-amber-500/30 text-gray-300 font-semibold text-lg transition-all hover:bg-white/5"
+              className="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl border border-white/10 hover:border-amber-500/40 bg-white/[0.02] hover:bg-white/[0.05] text-gray-200 font-semibold text-base backdrop-blur-sm transition-all"
             >
-              Demo দেখুন
+              {t("viewDemo")}
             </Link>
           </div>
 
+          {/* Trust line */}
+          <p className="text-xs text-gray-500 mb-12 inline-flex items-center gap-2">
+            <Star size={12} className="fill-amber-400 text-amber-400" />
+            {t("trustedBy")} · {t("freeForever")}
+          </p>
+
+          {/* Sample phrase cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-2xl mx-auto">
-            {SAMPLE_PHRASES.map((phrase) => (
-              <div key={phrase.lt} className="card-surface p-3 text-left flex flex-col gap-1">
-                <div className="flex items-center gap-2">
-                  <span className="lt-text font-bold text-base">{phrase.lt}</span>
-                  <AudioButton text={phrase.lt} size="sm" />
+            {SAMPLE_PHRASES.map((p) => (
+              <div
+                key={p.lt}
+                className="group rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-md p-4 text-left hover:border-amber-500/30 hover:bg-white/[0.06] transition-all"
+              >
+                <div className="flex items-center justify-between gap-2 mb-1">
+                  <span className="font-bold text-amber-400 text-base">{p.lt}</span>
+                  <AudioButton text={p.lt} size="sm" />
                 </div>
-                <span className="en-text text-sm">{phrase.en}</span>
-                <span className="bn-text font-bengali text-sm">{phrase.bn}</span>
+                <span className="text-sm text-gray-300">{PHRASE_TRANSLATIONS[p.key][lang] ?? PHRASE_TRANSLATIONS[p.key].en}</span>
               </div>
             ))}
           </div>
         </div>
       </section>
 
+      {/* STATS BAR */}
+      <section className="relative py-10 border-y border-white/10 bg-white/[0.02] backdrop-blur-sm">
+        <div className="max-w-6xl mx-auto px-4 grid grid-cols-2 md:grid-cols-4 gap-6">
+          {stats.map((s) => (
+            <div key={s.key} className="text-center">
+              <div className="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-400 mb-2">
+                <s.icon size={18} />
+              </div>
+              <p className="text-2xl md:text-3xl font-extrabold text-gray-100">{s.value}</p>
+              <p className="text-xs md:text-sm text-gray-500 mt-0.5">{t(s.key)}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* WHY */}
-      <section className="py-16 border-t border-[var(--border)]">
+      <section className="relative py-20">
         <div className="max-w-6xl mx-auto px-4">
-          <div className="text-center mb-10">
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-100 mb-2">
-              কেন <span className="text-amber-400">LithuanianBD</span>?
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-extrabold text-gray-100 mb-3">
+              {t("homeWhy")} <span className="text-amber-400">KalbaLab</span>?
             </h2>
-            <p className="text-gray-400">Why choose LithuanianBD?</p>
+            <p className="text-gray-400">{t("homeWhySub")}</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {FEATURES.map((f) => (
-              <div key={f.title_en} className="card-surface p-5 hover:border-amber-500/20 transition-all">
-                <div className="text-3xl mb-3">{f.icon}</div>
-                <h3 className="font-bold text-gray-100 mb-1">{f.title_en}</h3>
-                <p className="text-emerald-400 font-bengali text-sm mb-2">{f.title_bn}</p>
-                <p className="text-gray-400 text-sm font-bengali leading-relaxed">{f.desc_bn}</p>
+              <div
+                key={f.title}
+                className="group relative rounded-2xl border border-white/10 bg-white/[0.03] p-6 hover:border-amber-500/30 hover:bg-white/[0.05] transition-all overflow-hidden"
+              >
+                <div className={`absolute -top-12 -right-12 h-32 w-32 rounded-full bg-gradient-to-br ${f.tint} blur-2xl opacity-60 group-hover:opacity-100 transition-opacity`} />
+                <div className={`relative inline-flex items-center justify-center w-11 h-11 rounded-xl bg-gradient-to-br ${f.tint} mb-4`}>
+                  <f.icon size={20} />
+                </div>
+                <h3 className="relative font-bold text-gray-100 text-lg mb-1.5">{t(f.title)}</h3>
+                <p className="relative text-gray-400 text-sm leading-relaxed">{t(f.desc)}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* HOW IT WORKS */}
+      <section className="relative py-20 border-t border-white/10">
+        <div className="max-w-5xl mx-auto px-4">
+          <h2 className="text-3xl md:text-4xl font-extrabold text-gray-100 text-center mb-12">{t("howItWorks")}</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {STEPS.map((s, i) => (
+              <div key={s.n} className="relative">
+                {i < STEPS.length - 1 && (
+                  <div className="hidden md:block absolute top-8 left-[60%] right-[-40%] h-px bg-gradient-to-r from-amber-500/40 to-transparent" />
+                )}
+                <div className="relative rounded-2xl border border-white/10 bg-white/[0.03] p-6 hover:border-amber-500/30 transition-all">
+                  <div className="text-5xl font-black text-amber-500/30 mb-1 leading-none">{s.n}</div>
+                  <h3 className="font-bold text-gray-100 text-lg mb-1">{t(s.title)}</h3>
+                  <p className="text-gray-400 text-sm leading-relaxed">{t(s.desc)}</p>
+                </div>
               </div>
             ))}
           </div>
@@ -112,61 +208,67 @@ export default function LandingPage() {
       </section>
 
       {/* DEMO FLASHCARD */}
-      <section className="py-16 border-t border-[var(--border)] bg-[var(--surface)]">
+      <section className="relative py-20 border-t border-white/10">
         <div className="max-w-3xl mx-auto px-4 text-center">
-          <h2 className="text-2xl font-bold text-gray-100 mb-2">একটি ফ্ল্যাশকার্ড দেখুন</h2>
-          <p className="text-gray-400 text-sm mb-8">Try a sample flashcard — no login required</p>
+          <h2 className="text-3xl md:text-4xl font-extrabold text-gray-100 mb-2">{t("trySample")}</h2>
+          <p className="text-gray-400 text-sm mb-10">{t("trySampleSub")}</p>
 
-          <div className="card-surface p-8 max-w-sm mx-auto">
+          <div className="relative rounded-3xl border border-amber-500/20 bg-gradient-to-br from-white/[0.05] to-white/[0.01] backdrop-blur-md p-8 max-w-sm mx-auto shadow-2xl shadow-amber-500/5 animate-float">
             <div className="flex items-center justify-center gap-3 mb-4">
-              <span className="text-3xl font-bold text-amber-400">vanduo</span>
+              <span className="text-4xl font-bold text-amber-400">vanduo</span>
               <AudioButton text="vanduo" size="lg" showSlow />
             </div>
             <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-900/40 text-blue-300 text-xs mb-4">
-              noun · masc.
+              {t("noun")} · {t("masc")}
             </div>
-            <div className="border-t border-[var(--border)] pt-4 space-y-2">
-              <p className="text-gray-200 text-lg font-medium">water</p>
-              <p className="bn-text font-bengali text-xl">পানি</p>
-              <div className="mt-4 p-3 rounded-lg bg-[var(--background)] text-left">
+            <div className="border-t border-white/10 pt-4 space-y-2">
+              <p className="text-gray-100 text-lg font-medium">
+                {{ en: "water", bn: "পানি", az: "su", hi: "पानी", ky: "суу", tg: "об", uz: "suv" }[lang] ?? "water"}
+              </p>
+              <div className="mt-4 p-3 rounded-xl bg-black/30 text-left">
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-amber-400 text-sm font-medium">Prašau vandens.</span>
                   <AudioButton text="Prašau vandens." size="sm" />
                 </div>
-                <p className="text-gray-400 text-xs">Water, please.</p>
-                <p className="bn-text font-bengali text-xs mt-0.5">একটু পানি দিন, দয়া করে।</p>
+                <p className="text-gray-400 text-xs">
+                  {{ en: "Water, please.", bn: "একটু পানি দিন, দয়া করে।", az: "Zəhmət olmasa, su.", hi: "कृपया पानी दीजिए।", ky: "Сураныч, суу.", tg: "Лутфан, об.", uz: "Iltimos, suv." }[lang] ?? "Water, please."}
+                </p>
               </div>
             </div>
           </div>
 
-          <div className="mt-6">
+          <div className="mt-8">
             <Link href="/flashcards" className="inline-flex items-center gap-2 text-amber-400 hover:text-amber-300 font-semibold transition-colors">
-              সব ফ্ল্যাশকার্ড দেখুন <ArrowRight size={16} />
+              {t("viewAllFlash")} <ArrowRight size={16} />
             </Link>
           </div>
         </div>
       </section>
 
       {/* A1 EXAM */}
-      <section className="py-16 border-t border-[var(--border)]">
+      <section className="relative py-20 border-t border-white/10">
         <div className="max-w-5xl mx-auto px-4">
           <div className="text-center mb-10">
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-100 mb-2">🎓 A1 পরীক্ষার প্রস্তুতি</h2>
-            <p className="text-gray-400 mb-1">A1 Lithuanian Language Exam (Integration Test)</p>
-            <div className="inline-flex items-center gap-4 mt-3">
-              <span className="text-sm text-gray-400">ফি: <span className="text-amber-400 font-bold">€52</span> (2026)</span>
-              <span className="text-gray-600">|</span>
-              <span className="text-sm text-gray-400">পাস: <span className="text-emerald-400 font-bold">50%</span> সামগ্রিক</span>
+            <h2 className="text-3xl md:text-4xl font-extrabold text-gray-100 mb-3">{t("examTitle")}</h2>
+            <p className="text-gray-400 mb-3">{t("examSubtitle")}</p>
+            <div className="inline-flex items-center gap-4 mt-2 flex-wrap justify-center text-sm">
+              <span className="text-gray-400">{t("examFee")} <span className="text-amber-400 font-bold">€52</span></span>
+              <span className="text-gray-700">|</span>
+              <span className="text-gray-400">{t("examPass")} <span className="text-emerald-400 font-bold">50%</span> {t("overall")}</span>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            {EXAM_SECTIONS.map((s) => (
-              <div key={s.key} className="card-surface p-5 text-center hover:border-emerald-500/20 transition-all">
-                <div className="text-xl font-bold text-amber-400 mb-1">{s.key}</div>
-                <div className="text-gray-200 font-semibold mb-1">{s.en}</div>
-                <div className="text-emerald-400 font-bengali text-sm mb-2">{s.bn}</div>
-                <p className="text-gray-500 text-xs font-bengali leading-relaxed">{s.desc_bn}</p>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
+            {[
+              { lt: "Skaitymas",  k: "reading"   as TranslationKey, d: "examReadingD" as TranslationKey },
+              { lt: "Rašymas",    k: "writing"   as TranslationKey, d: "examWritingD" as TranslationKey },
+              { lt: "Klausymas",  k: "listening" as TranslationKey, d: "examListenD"  as TranslationKey },
+              { lt: "Kalbėjimas", k: "speaking"  as TranslationKey, d: "examSpeakD"   as TranslationKey },
+            ].map((s) => (
+              <div key={s.lt} className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 text-center hover:border-emerald-500/30 hover:bg-white/[0.05] transition-all">
+                <div className="text-base font-bold text-amber-400 mb-1">{s.lt}</div>
+                <div className="text-gray-100 font-semibold text-sm mb-2">{t(s.k)}</div>
+                <p className="text-gray-500 text-xs leading-relaxed">{t(s.d)}</p>
               </div>
             ))}
           </div>
@@ -174,52 +276,38 @@ export default function LandingPage() {
           <div className="text-center">
             <Link
               href="/exam-prep"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 text-emerald-400 font-semibold transition-all"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 font-semibold transition-all"
             >
-              পরীক্ষার প্রস্তুতি শুরু করুন <ArrowRight size={16} />
+              {t("startExamPrep")} <ArrowRight size={16} />
             </Link>
           </div>
         </div>
       </section>
 
       {/* TESTIMONIALS */}
-      <section className="py-16 border-t border-[var(--border)] bg-[var(--surface)]">
+      <section className="relative py-20 border-t border-white/10">
         <div className="max-w-5xl mx-auto px-4">
-          <h2 className="text-2xl font-bold text-gray-100 text-center mb-8">বাংলাদেশি কমিউনিটির মতামত</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {TESTIMONIALS.map((t) => (
-              <div key={t.name} className="card-surface p-5">
-                <div className="flex mb-3">
-                  {Array.from({ length: t.rating }).map((_, i) => (
-                    <Star key={i} size={14} className="text-amber-400 fill-amber-400" />
-                  ))}
-                </div>
-                <p className="text-gray-300 font-bengali text-sm leading-relaxed mb-3">"{t.text}"</p>
-                <div>
-                  <p className="text-amber-400 font-semibold text-sm font-bengali">{t.name}</p>
-                  <p className="text-gray-500 text-xs">{t.city}, Lithuania</p>
-                </div>
-              </div>
-            ))}
-          </div>
+          <h2 className="text-3xl md:text-4xl font-extrabold text-gray-100 text-center mb-10">{t("testimonials")}</h2>
+          <TestimonialSlider />
         </div>
       </section>
 
       {/* CTA */}
-      <section className="py-20 border-t border-[var(--border)]">
+      <section className="relative py-24 border-t border-white/10">
         <div className="max-w-2xl mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold text-gray-100 mb-3">আজই শুরু করুন — বিনামূল্যে</h2>
-          <p className="text-gray-400 mb-8">Start learning Lithuanian today — it&apos;s completely free</p>
+          <h2 className="text-4xl md:text-5xl font-extrabold text-gray-100 mb-4">{t("ctaTitle")}</h2>
+          <p className="text-gray-400 mb-10">{t("ctaSub")}</p>
           <Link
             href="/register"
-            className="inline-flex items-center gap-2 px-10 py-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-bold text-xl transition-all hover:scale-105 shadow-xl shadow-amber-500/20"
+            className="inline-flex items-center gap-2 px-10 py-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-bold text-xl transition-all hover:scale-[1.03] shadow-2xl shadow-amber-500/30"
           >
-            <span className="font-bengali">শুরু করুন</span>
+            <span>{t("start")}</span>
             <ArrowRight size={22} />
           </Link>
-          <p className="text-gray-600 text-sm mt-4">কোনো ক্রেডিট কার্ড লাগবে না · No credit card required</p>
+          <p className="text-gray-600 text-sm mt-5">{t("noCard")}</p>
         </div>
       </section>
+      </div>
     </div>
   );
 }

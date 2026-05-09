@@ -1,162 +1,82 @@
+"use client";
+
 import Link from "next/link";
-import { ArrowRight, ExternalLink } from "lucide-react";
+import { ArrowRight, GraduationCap } from "lucide-react";
+import { useTranslation } from "@/hooks/useTranslation";
+import type { TranslationKey, UILanguage } from "@/lib/i18n";
+import { PageBackdrop } from "@/components/ui/PageBackdrop";
 
-const EXAM_SECTIONS = [
-  {
-    id: "listening",
-    icon: "🎧",
-    title_lt: "Klausymas",
-    title_en: "Listening",
-    title_bn: "শোনা",
-    desc_bn: "রেকর্ড করা ঘোষণা ও সংলাপ শুনে প্রশ্নের উত্তর দিন",
-    href: "/exam-prep/listening",
-    color: "text-blue-400 border-blue-500/20 bg-blue-500/10",
-  },
-  {
-    id: "reading",
-    icon: "📖",
-    title_lt: "Skaitymas",
-    title_en: "Reading",
-    title_bn: "পড়া",
-    desc_bn: "সাইন, মেনু, সময়সূচি ও ছোট চিঠি পড়ে প্রশ্নের উত্তর দিন",
-    href: "/exam-prep/reading",
-    color: "text-green-400 border-green-500/20 bg-green-500/10",
-  },
-  {
-    id: "writing",
-    icon: "✍️",
-    title_lt: "Rašymas",
-    title_en: "Writing",
-    title_bn: "লেখা",
-    desc_bn: "ফর্ম পূরণ করুন এবং ৫০-৮০ শব্দের বার্তা লিখুন",
-    href: "/exam-prep/writing",
-    color: "text-amber-400 border-amber-500/20 bg-amber-500/10",
-  },
-  {
-    id: "speaking",
-    icon: "🎤",
-    title_lt: "Kalbėjimas",
-    title_en: "Speaking",
-    title_bn: "বলা",
-    desc_bn: "মৌখিক পরীক্ষার অনুশীলন করুন — নিজেকে রেকর্ড করুন",
-    href: "/exam-prep/speaking",
-    color: "text-purple-400 border-purple-500/20 bg-purple-500/10",
-  },
-  {
-    id: "mock-exam",
-    icon: "📋",
-    title_lt: "Bandomasis egzaminas",
-    title_en: "Full Mock Exam",
-    title_bn: "পূর্ণ মক পরীক্ষা",
-    desc_bn: "আসল পরীক্ষার মতো সম্পূর্ণ অনুশীলন করুন সময়সীমাসহ",
-    href: "/exam-prep/mock-exam",
-    color: "text-emerald-400 border-emerald-500/20 bg-emerald-500/10",
-  },
+type Multi = Partial<Record<UILanguage, string>> & { en: string };
+
+const EXAM_SECTIONS: { id: string; icon: string; lt: string; titleKey: TranslationKey; desc: Multi; href: string; color: string }[] = [
+  { id: "listening",  icon: "🎧", lt: "Klausymas",            titleKey: "listening", desc: { en: "Listen to recorded announcements and dialogues, then answer questions.", bn: "রেকর্ড করা ঘোষণা ও সংলাপ শুনে প্রশ্নের উত্তর দিন", az: "Səs yazılı elan və dialoqları dinləyib suallara cavab verin.", hi: "रिकॉर्ड की गई घोषणाएँ और संवाद सुनें और प्रश्नों के उत्तर दें।", ky: "Жазылган жарыяларды жана диалогдорду угуп, суроолорго жооп бериңиз.", tg: "Эълонҳо ва муколамаҳои сабтшударо гӯш карда, ҷавоб диҳед.", uz: "Yozib olingan eʼlonlar va dialoglarni tinglab, savollarga javob bering." }, href: "/exam-prep/listening", color: "text-blue-400 border-blue-500/20 bg-blue-500/10" },
+  { id: "reading",    icon: "📖", lt: "Skaitymas",            titleKey: "reading",   desc: { en: "Read signs, menus, schedules and short messages, then answer questions.", bn: "সাইন, মেনু, সময়সূচি ও ছোট বার্তা পড়ে প্রশ্নের উত্তর দিন", az: "Lövhələr, menyular, cədvəllər və qısa mesajları oxuyub suallara cavab verin.", hi: "साइन, मेनू, समय-सारणी और लघु संदेश पढ़ें।", ky: "Белгилерди, менюларды, графиктерди жана кыска билдирүүлөрдү окуңуз.", tg: "Аломатҳо, меню, ҷадвалҳо ва паёмҳои кӯтоҳро хонед.", uz: "Belgilar, menyular, jadval va qisqa xabarlarni oʻqing." }, href: "/exam-prep/reading", color: "text-green-400 border-green-500/20 bg-green-500/10" },
+  { id: "writing",    icon: "✍️", lt: "Rašymas",              titleKey: "writing",   desc: { en: "Fill out forms and write 50–80 word messages.", bn: "ফর্ম পূরণ করুন এবং ৫০–৮০ শব্দের বার্তা লিখুন", az: "Formaları doldurun və 50–80 sözlük mesaj yazın.", hi: "फ़ॉर्म भरें और 50–80 शब्दों का संदेश लिखें।", ky: "Формаларды толтуруп, 50–80 сөздүк билдирүү жазыңыз.", tg: "Шаклҳоро пур кунед ва паёми 50–80 калима нависед.", uz: "Shakllarni toʻldiring va 50–80 soʻzli xabar yozing." }, href: "/exam-prep/writing", color: "text-amber-400 border-amber-500/20 bg-amber-500/10" },
+  { id: "speaking",   icon: "🎤", lt: "Kalbėjimas",           titleKey: "speaking",  desc: { en: "Practice the oral exam — record yourself.", bn: "মৌখিক পরীক্ষার অনুশীলন করুন — নিজেকে রেকর্ড করুন", az: "Şifahi imtahanı məşq edin — özünüzü səs yazın.", hi: "मौखिक परीक्षा का अभ्यास करें — स्वयं को रिकॉर्ड करें।", ky: "Оозеки сынакты машыктырыңыз — өзүңүздү жазыңыз.", tg: "Имтиҳони шифоҳиро машқ кунед — худро сабт кунед.", uz: "Ogʻzaki imtihonni mashq qiling — oʻzingizni yozib oling." }, href: "/exam-prep/speaking", color: "text-purple-400 border-purple-500/20 bg-purple-500/10" },
+  { id: "mock",       icon: "📋", lt: "Bandomasis egzaminas", titleKey: "mockExam",  desc: { en: "Take a full timed mock exam, just like the real test.", bn: "আসল পরীক্ষার মতো সম্পূর্ণ অনুশীলন করুন সময়সীমাসহ", az: "Real test kimi tam vaxtlı sınaq imtahanı verin.", hi: "वास्तविक परीक्षा की तरह पूरा समयबद्ध मॉक परीक्षा दें।", ky: "Реалдуу сынак сыяктуу толук убакыт менен мок сынак тапшырыңыз.", tg: "Имтиҳони омӯзишии пурраи бо вақт диҳед.", uz: "Haqiqiy testdek toʻliq vaqt bilan sinov imtihonini topshiring." }, href: "/exam-prep/mock-exam", color: "text-emerald-400 border-emerald-500/20 bg-emerald-500/10" },
 ];
 
-const EXAM_FACTS = [
-  { label_bn: "পরীক্ষার ফি", value: "€52", note: "(2026)" },
-  { label_bn: "পাস নম্বর", value: "50%", note: "সামগ্রিক" },
-  { label_bn: "প্রতিটি অংশে ন্যূনতম", value: "25%", note: "পাস করতে হবে" },
-  { label_bn: "পরীক্ষার সময়", value: "~2.5", note: "ঘন্টা" },
-];
-
-const EXAM_SKILLS = [
-  {
-    key: "Klausymas (Listening)",
-    bn: "শোনা",
-    format_bn: "রেকর্ড করা ঘোষণা ও সংলাপ — হেডফোনে শুনে MCQ উত্তর",
-    tips_bn: "সংখ্যা, সময়, এবং স্থানের নাম ভালো করে শিখুন।",
-  },
-  {
-    key: "Skaitymas (Reading)",
-    bn: "পড়া",
-    format_bn: "সাইন, বিজ্ঞাপন, সংক্ষিপ্ত বার্তা পড়ে MCQ উত্তর",
-    tips_bn: "প্রতিদিন লিথুয়ানিয়ান সাইন ও মেনু পড়ার অনুশীলন করুন।",
-  },
-  {
-    key: "Rašymas (Writing)",
-    bn: "লেখা",
-    format_bn: "ফর্ম পূরণ + ৫০-৮০ শব্দের অনানুষ্ঠানিক বার্তা লেখা",
-    tips_bn: "সংযোজক শব্দ ব্যবহার করুন: ir (এবং), bet (কিন্তু), nes (কারণ)।",
-  },
-  {
-    key: "Kalbėjimas (Speaking)",
-    bn: "বলা",
-    format_bn: "পরীক্ষকের সাথে ব্যক্তিগত তথ্য ও দৈনন্দিন বিষয়ে কথা বলা",
-    tips_bn: "নিজেকে পরিচয় করিয়ে দেওয়া ও পরিবার সম্পর্কে কথা বলার অভ্যাস করুন।",
-  },
+const EXAM_FACTS: { labelKey: TranslationKey; value: string; note: Multi }[] = [
+  { labelKey: "examFee",   value: "€52",  note: { en: "(2026)",       bn: "(২০২৬)",      az: "(2026)",        hi: "(2026)",        ky: "(2026)",         tg: "(2026)",         uz: "(2026)" } },
+  { labelKey: "examPass",  value: "50%",  note: { en: "overall",      bn: "সামগ্রিক",   az: "ümumi",          hi: "कुल",            ky: "жалпы",          tg: "умумӣ",           uz: "umumiy" } },
+  // minimum per section
+  { labelKey: "examPass",  value: "25%",  note: { en: "min. per section", bn: "প্রতিটি অংশে ন্যূনতম", az: "hər bölmədə minimum", hi: "प्रत्येक अनुभाग में न्यूनतम", ky: "ар бир бөлүмдө минимум", tg: "ҳадди ақал дар ҳар бахш", uz: "har bir boʻlimda kamida" } },
+  { labelKey: "examFee",   value: "~2.5", note: { en: "hours total",  bn: "ঘন্টা",       az: "saat",           hi: "घंटे",            ky: "саат",           tg: "соат",            uz: "soat" } },
 ];
 
 export default function ExamPrepPage() {
+  const { t, lang } = useTranslation();
+
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8">
-      {/* Hero */}
-      <div className="card-surface p-8 mb-8 border-amber-500/20 text-center">
-        <div className="text-4xl mb-3">🎓</div>
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-100 mb-2">
-          A1 পরীক্ষার জন্য প্রস্তুত হন
-        </h1>
-        <p className="text-amber-400 font-bengali text-xl mb-1">লিথুয়ানিয়ান ভাষার সমন্বয় পরীক্ষা</p>
-        <p className="text-gray-400">Lithuanian Language Integration Test (A1 Level)</p>
-      </div>
-
-      {/* Exam facts */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
-        {EXAM_FACTS.map((f) => (
-          <div key={f.label_bn} className="card-surface p-4 text-center">
-            <p className="text-2xl font-bold text-amber-400">{f.value}</p>
-            <p className="text-xs text-gray-500">{f.note}</p>
-            <p className="text-xs text-gray-400 font-bengali mt-0.5">{f.label_bn}</p>
+    <div className="relative isolate min-h-[calc(100vh-3.5rem)]">
+      <PageBackdrop />
+      <div className="relative z-10 max-w-5xl mx-auto px-4 py-8 sm:py-12">
+        {/* Hero card */}
+        <div className="relative overflow-hidden rounded-3xl border border-amber-500/30 bg-gradient-to-br from-amber-500/[0.08] via-emerald-500/[0.04] to-transparent p-8 sm:p-12 mb-8 text-center anim-fade-up">
+          <div className="absolute -top-20 -right-20 h-72 w-72 rounded-full bg-amber-500/15 blur-3xl" />
+          <div className="absolute -bottom-20 -left-20 h-72 w-72 rounded-full bg-emerald-500/10 blur-3xl" />
+          <div className="relative">
+            <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-amber-500/20 border border-amber-500/40 text-amber-300 mb-4 animate-float">
+              <GraduationCap size={26} />
+            </div>
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-gray-100 mb-3 leading-tight">{t("examTitleFull")}</h1>
+            <p className="text-gray-300 text-sm sm:text-base max-w-xl mx-auto">{t("examSubLong")}</p>
           </div>
-        ))}
-      </div>
+        </div>
 
-      {/* Exam format explanation */}
-      <div className="card-surface p-6 mb-8">
-        <h2 className="font-bold text-gray-100 text-lg mb-4">পরীক্ষার ফরম্যাট · Exam Format</h2>
-        <div className="space-y-4">
-          {EXAM_SKILLS.map((s) => (
-            <div key={s.key} className="border-l-2 border-amber-500/40 pl-4">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="font-bold text-amber-400 text-sm">{s.key}</span>
-                <span className="text-emerald-400 font-bengali text-sm">({s.bn})</span>
-              </div>
-              <p className="text-gray-300 text-sm font-bengali mb-1">{s.format_bn}</p>
-              <p className="text-gray-500 text-xs font-bengali">💡 {s.tips_bn}</p>
+        {/* Facts */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-10 anim-stagger">
+          {EXAM_FACTS.map((f, i) => (
+            <div key={i} className="rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-sm p-4 sm:p-5 text-center hover:border-amber-500/30 hover:bg-white/[0.05] transition-all">
+              <p className="text-2xl sm:text-3xl font-extrabold text-amber-400">{f.value}</p>
+              <p className="text-[11px] text-gray-500 mt-0.5">{f.note[lang] ?? f.note.en}</p>
+              <p className="text-xs text-gray-300 mt-1.5 font-medium">{t(f.labelKey)}</p>
             </div>
           ))}
         </div>
 
-        <div className="mt-5 p-3 rounded-lg bg-blue-950/20 border border-blue-500/20">
-          <p className="text-blue-300 text-sm font-bengali">
-            📌 রেজিস্ট্রেশন করুন NŠA পোর্টালে: <strong>eksternams.nsa.smm.lt</strong>
-          </p>
-          <p className="text-blue-400/60 text-xs mt-0.5">Register at the official NŠA portal for exam booking.</p>
+        {/* Sections */}
+        <h2 className="font-extrabold text-gray-100 text-xl sm:text-2xl mb-4 anim-fade-up">{t("startSection")}</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 anim-stagger">
+          {EXAM_SECTIONS.map((s) => (
+            <Link
+              key={s.id}
+              href={s.href}
+              className={`group relative overflow-hidden rounded-2xl p-6 flex flex-col gap-3 backdrop-blur-sm hover:-translate-y-0.5 transition-all border ${s.color}`}
+            >
+              <div className="absolute -top-10 -right-10 h-28 w-28 rounded-full bg-current opacity-[0.08] blur-2xl group-hover:opacity-[0.18] transition-opacity" />
+              <div className="relative text-3xl group-hover:scale-110 transition-transform origin-left">{s.icon}</div>
+              <div className="relative">
+                <p className="text-lg font-extrabold text-amber-400">{s.lt}</p>
+                <p className="text-gray-100 font-semibold">{t(s.titleKey)}</p>
+              </div>
+              <p className="relative text-gray-400 text-sm leading-relaxed flex-1">{s.desc[lang] ?? s.desc.en}</p>
+              <div className="relative flex items-center gap-1 text-current text-sm font-semibold group-hover:gap-2 transition-all">
+                {t("startSection")} <ArrowRight size={14} />
+              </div>
+            </Link>
+          ))}
         </div>
-      </div>
-
-      {/* Practice sections */}
-      <h2 className="font-bold text-gray-200 text-lg mb-4">অনুশীলন শুরু করুন · Start Practicing</h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {EXAM_SECTIONS.map((s) => (
-          <Link
-            key={s.id}
-            href={s.href}
-            className={`card-surface p-6 flex flex-col gap-3 hover:scale-[1.02] transition-all border ${s.color}`}
-          >
-            <div className="text-3xl">{s.icon}</div>
-            <div>
-              <p className="text-lg font-bold text-amber-400">{s.title_lt}</p>
-              <p className="text-gray-200 font-semibold">{s.title_en}</p>
-              <p className="text-emerald-400 font-bengali text-sm">{s.title_bn}</p>
-            </div>
-            <p className="text-gray-400 text-sm font-bengali leading-relaxed flex-1">{s.desc_bn}</p>
-            <div className="flex items-center gap-1 text-current text-sm font-medium">
-              অনুশীলন করুন <ArrowRight size={14} />
-            </div>
-          </Link>
-        ))}
       </div>
     </div>
   );

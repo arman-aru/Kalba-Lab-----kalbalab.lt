@@ -2,80 +2,121 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Eye, EyeOff, UserPlus } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Eye, EyeOff, UserPlus, FlaskConical } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/hooks/useTranslation";
+import { AnimatedBackground } from "@/components/ui/AnimatedBackground";
+import { GoogleButton } from "@/components/auth/GoogleButton";
+import { getSupabaseBrowser } from "@/lib/supabase-browser";
 
 export default function RegisterPage() {
+  const { t } = useTranslation();
+  const router = useRouter();
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [info, setInfo] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError("");
-    // TODO: Connect to Supabase auth
-    setTimeout(() => {
+    setInfo("");
+
+    const sb = getSupabaseBrowser();
+    const cleanEmail = email.trim().toLowerCase();
+
+    try {
+      const { data, error: err } = await sb.auth.signUp({
+        email: cleanEmail,
+        password,
+        options: {
+          data: { full_name: name },
+          emailRedirectTo: `${window.location.origin}/auth/callback?next=/profile`,
+        },
+      });
+      if (err) throw err;
+
+      if (!data.session) {
+        setInfo(`We sent a confirmation link to ${cleanEmail}. Check your inbox to finish signup.`);
+        return;
+      }
+
+      if (data.user) {
+        await sb.from("profiles").update({ full_name: name }).eq("id", data.user.id);
+      }
+      router.replace("/profile");
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t("registerFailed"));
+    } finally {
       setLoading(false);
-      setError("রেজিস্ট্রেশন করতে পারছি না। আবার চেষ্টা করুন। / Registration failed. Please try again.");
-    }, 1000);
+    }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-12">
-      <div className="w-full max-w-md">
+    <div className="relative min-h-screen flex items-center justify-center px-4 py-12 isolate overflow-hidden">
+      <AnimatedBackground />
+
+      <div className="relative z-10 w-full max-w-md anim-fade-up">
         <div className="text-center mb-8">
-          <Link href="/" className="inline-flex items-center gap-2 mb-6">
-            <span className="text-2xl">🇱🇹</span>
-            <span className="text-xl font-bold text-amber-400">LithuanianBD</span>
+          <Link href="/" className="group inline-flex items-center gap-2.5 mb-6">
+            <span className="relative inline-flex h-10 w-10 items-center justify-center rounded-xl bg-linear-to-br from-amber-400/30 via-amber-500/15 to-amber-600/10 ring-1 ring-amber-500/30 shadow-[0_4px_16px_-4px_rgba(245,158,11,0.45)] transition-transform group-hover:scale-105">
+              <FlaskConical size={20} className="text-amber-300 drop-shadow-[0_0_6px_rgba(245,158,11,0.6)]" strokeWidth={2.2} />
+            </span>
+            <span className="font-extrabold text-xl md:text-2xl tracking-tight bg-linear-to-r from-amber-300 via-amber-200 to-amber-400 bg-clip-text text-transparent">
+              Kalba<span className="ml-1">Lab</span>
+            </span>
           </Link>
-          <h1 className="text-2xl font-bold text-gray-100">অ্যাকাউন্ট তৈরি করুন</h1>
-          <p className="text-gray-400 text-sm mt-1">Create your free account — বিনামূল্যে যোগ দিন</p>
+          <h1 className="text-3xl font-extrabold text-gray-100">{t("createAccount")}</h1>
+          <p className="text-gray-400 text-sm mt-2">{t("registerSubtitle")}</p>
         </div>
 
-        <div className="card-surface p-8">
+        <div className="relative rounded-2xl border border-white/10 bg-[var(--surface)]/70 backdrop-blur-xl p-7 sm:p-8 shadow-2xl shadow-amber-500/[0.04]">
           {error && (
-            <div className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+            <div className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm anim-fade-in">
               {error}
+            </div>
+          )}
+          {info && (
+            <div className="mb-4 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-sm anim-fade-in">
+              {info}
             </div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1.5">
-                পুরো নাম / Full Name
-              </label>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">{t("fullName")}</label>
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
-                placeholder="আপনার নাম / Your name"
-                className="w-full px-3 py-2.5 rounded-lg border border-[var(--border)] bg-[var(--background)] text-gray-200 placeholder-gray-600 focus:border-amber-500/50 focus:outline-none transition-colors text-sm"
+                placeholder={t("yourName")}
+                className="w-full px-3.5 py-3 rounded-xl border border-white/10 bg-black/30 text-gray-100 placeholder-gray-600 focus:border-amber-500/50 focus:bg-black/40 focus:outline-none focus:ring-2 focus:ring-amber-500/20 transition-all text-sm"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1.5">
-                ইমেইল / Email
-              </label>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">{t("email")}</label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                autoComplete="email"
                 placeholder="your@email.com"
-                className="w-full px-3 py-2.5 rounded-lg border border-[var(--border)] bg-[var(--background)] text-gray-200 placeholder-gray-600 focus:border-amber-500/50 focus:outline-none transition-colors text-sm"
+                className="w-full px-3.5 py-3 rounded-xl border border-white/10 bg-black/30 text-gray-100 placeholder-gray-600 focus:border-amber-500/50 focus:bg-black/40 focus:outline-none focus:ring-2 focus:ring-amber-500/20 transition-all text-sm"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1.5">
-                পাসওয়ার্ড / Password
-              </label>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">{t("password")}</label>
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
@@ -83,13 +124,13 @@ export default function RegisterPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   minLength={8}
-                  placeholder="কমপক্ষে ৮ অক্ষর / Min 8 characters"
-                  className="w-full px-3 py-2.5 pr-10 rounded-lg border border-[var(--border)] bg-[var(--background)] text-gray-200 placeholder-gray-600 focus:border-amber-500/50 focus:outline-none transition-colors text-sm"
+                  placeholder={t("minChars")}
+                  className="w-full px-3.5 py-3 pr-11 rounded-xl border border-white/10 bg-black/30 text-gray-100 placeholder-gray-600 focus:border-amber-500/50 focus:bg-black/40 focus:outline-none focus:ring-2 focus:ring-amber-500/20 transition-all text-sm"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded text-gray-500 hover:text-gray-200 transition-colors"
                 >
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
@@ -100,9 +141,9 @@ export default function RegisterPage() {
               type="submit"
               disabled={loading}
               className={cn(
-                "w-full flex items-center justify-center gap-2 py-3 rounded-lg font-semibold transition-all",
-                "bg-amber-500 hover:bg-amber-400 text-black",
-                loading && "opacity-70 cursor-not-allowed"
+                "w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold transition-all",
+                "bg-amber-500 hover:bg-amber-400 text-black shadow-lg shadow-amber-500/25 hover:scale-[1.02]",
+                loading && "opacity-70 cursor-not-allowed scale-100"
               )}
             >
               {loading ? (
@@ -110,7 +151,7 @@ export default function RegisterPage() {
               ) : (
                 <>
                   <UserPlus size={16} />
-                  <span>রেজিস্ট্রেশন করুন / Sign Up</span>
+                  <span>{t("signUp")}</span>
                 </>
               )}
             </button>
@@ -118,28 +159,20 @@ export default function RegisterPage() {
 
           <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-[var(--border)]" />
+              <div className="w-full border-t border-white/10" />
             </div>
-            <div className="relative flex justify-center text-xs text-gray-500">
-              <span className="px-2 bg-[var(--surface)]">অথবা / or</span>
+            <div className="relative flex justify-center text-xs uppercase tracking-wider">
+              <span className="px-3 bg-[var(--surface)]/80 text-gray-500">{t("or")}</span>
             </div>
           </div>
 
-          <button className="w-full flex items-center justify-center gap-3 py-2.5 rounded-lg border border-[var(--border)] hover:border-amber-500/20 text-gray-300 text-sm hover:bg-white/5 transition-all">
-            <svg viewBox="0 0 24 24" className="w-4 h-4">
-              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
-              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
-            </svg>
-            Google দিয়ে যোগ দিন
-          </button>
+          <GoogleButton label={t("signUpGoogle")} next="/dashboard" />
         </div>
 
         <p className="text-center text-sm text-gray-500 mt-6">
-          ইতিমধ্যে অ্যাকাউন্ট আছে?{" "}
-          <Link href="/login" className="text-amber-400 hover:text-amber-300 font-medium">
-            লগইন করুন
+          {t("haveAccount")}{" "}
+          <Link href="/login" className="text-amber-400 hover:text-amber-300 font-semibold transition-colors">
+            {t("signIn")}
           </Link>
         </p>
       </div>

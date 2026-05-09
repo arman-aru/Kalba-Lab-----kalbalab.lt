@@ -119,6 +119,7 @@ export interface UserProfile {
   total_xp: number;
   created_at: string;
   last_seen: string;
+  is_admin?: boolean;
 }
 
 export interface UserVocabProgress {

@@ -1,16 +1,18 @@
+"use client";
+
 import Link from "next/link";
 import { ArrowRight, MessageSquare } from "lucide-react";
 import { dialoguesData } from "@/data/dialogues";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function DialoguesHubPage() {
+  const { t, lang } = useTranslation();
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       <div className="mb-6">
-        <div className="text-xs text-gray-500 mb-1">Lessons / A1 / Dialogues</div>
-        <h1 className="text-2xl font-bold text-gray-100">
-          Dialogues <span className="text-amber-400 font-bengali text-xl">· কথোপকথন</span>
-        </h1>
-        <p className="text-gray-400 text-sm mt-1">Real-life Lithuanian conversations with Bengali translations</p>
+        <div className="text-xs text-gray-500 mb-1">{t("lessons")} / A1 / {t("dialogues")}</div>
+        <h1 className="text-2xl font-bold text-gray-100">{t("dialogues")}</h1>
+        <p className="text-gray-400 text-sm mt-1">{t("dialoguesSub")}</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -25,17 +27,17 @@ export default function DialoguesHubPage() {
                 <MessageSquare size={18} className="text-cyan-400" />
               </div>
               <div>
-                <span className="text-xs text-gray-600">Dialogue {i + 1}</span>
+                <span className="text-xs text-gray-600">{t("dialogueWord")} {i + 1}</span>
                 <h3 className="font-bold text-gray-100">{d.title_en}</h3>
                 <p className="text-amber-400 text-sm font-bold">{d.title_lt}</p>
-                <p className="text-emerald-400 font-bengali text-sm">{d.title_bn}</p>
+                {lang === "bn" && <p className="text-emerald-400 font-bengali text-sm">{d.title_bn}</p>}
               </div>
             </div>
-            <p className="text-gray-400 text-sm font-bengali mb-3">{d.scenario_bn}</p>
+            {lang === "bn" && <p className="text-gray-400 text-sm font-bengali mb-3">{d.scenario_bn}</p>}
             <div className="flex items-center justify-between">
-              <span className="text-xs text-gray-600">{d.lines.length} lines</span>
+              <span className="text-xs text-gray-600">{d.lines.length} {t("lines")}</span>
               <span className="flex items-center gap-1 text-amber-400 text-sm group-hover:gap-2 transition-all">
-                Start <ArrowRight size={14} />
+                {t("startSection")} <ArrowRight size={14} />
               </span>
             </div>
           </Link>

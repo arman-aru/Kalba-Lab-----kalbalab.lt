@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { UserProfile, VocabularyItem, FlashcardDeck } from "@/types";
+import type { UILanguage } from "@/lib/i18n";
 
 interface AppState {
   // Theme
@@ -9,16 +10,28 @@ interface AppState {
   toggleTheme: () => void;
 
   // UI language
-  uiLanguage: "bn" | "en";
-  setUiLanguage: (l: "bn" | "en") => void;
+  uiLanguage: UILanguage;
+  setUiLanguage: (l: UILanguage) => void;
 
   // Auth / user
   user: UserProfile | null;
   setUser: (u: UserProfile | null) => void;
 
+  // XP
+  liveXP: number;
+  addXP: (amount: number) => void;
+  lastXPGain: { amount: number; at: number } | null;
+
   // Audio preferences
   audioAutoplay: boolean;
   setAudioAutoplay: (v: boolean) => void;
+  voiceId: string;
+  setVoiceId: (id: string) => void;
+  dailyGoalXP: number;
+  setDailyGoalXP: (n: number) => void;
+  todayXP: number;
+  todayDate: string;
+  addTodayXP: (n: number) => void;
 
   // Search
   searchOpen: boolean;
@@ -66,14 +79,36 @@ export const useAppStore = create<AppState>()(
       setTheme: (t) => set({ theme: t }),
       toggleTheme: () => set((s) => ({ theme: s.theme === "dark" ? "light" : "dark" })),
 
-      uiLanguage: "bn",
+      uiLanguage: "en",
       setUiLanguage: (l) => set({ uiLanguage: l }),
 
       user: null,
       setUser: (u) => set({ user: u }),
 
+      liveXP: 1240,
+      lastXPGain: null,
+      addXP: (amount) =>
+        set((s) => ({
+          liveXP: s.liveXP + amount,
+          lastXPGain: { amount, at: Date.now() },
+        })),
+
       audioAutoplay: false,
       setAudioAutoplay: (v) => set({ audioAutoplay: v }),
+      voiceId: "ona",
+      setVoiceId: (id) => set({ voiceId: id }),
+      dailyGoalXP: 50,
+      setDailyGoalXP: (n) => set({ dailyGoalXP: n }),
+      todayXP: 0,
+      todayDate: new Date().toISOString().slice(0, 10),
+      addTodayXP: (n) =>
+        set((s) => {
+          const today = new Date().toISOString().slice(0, 10);
+          if (s.todayDate !== today) {
+            return { todayXP: n, todayDate: today };
+          }
+          return { todayXP: s.todayXP + n };
+        }),
 
       searchOpen: false,
       setSearchOpen: (v) => set({ searchOpen: v }),
@@ -84,8 +119,14 @@ export const useAppStore = create<AppState>()(
       toggleSavedWord: (id) =>
         set((s) => {
           const next = new Set(s.savedWords);
-          if (next.has(id)) next.delete(id);
-          else next.add(id);
+          const wasAdding = !next.has(id);
+          if (wasAdding) next.add(id);
+          else next.delete(id);
+          // Award XP only when the user *adds* a new word — not when they remove one.
+          if (wasAdding && typeof window !== "undefined") {
+            // Lazy-load to avoid a server-side bundle on this otherwise-pure store.
+            import("@/lib/award-xp").then(({ awardXP }) => awardXP("vocab_save")).catch(() => {});
+          }
           return { savedWords: next };
         }),
 
@@ -105,11 +146,15 @@ export const useAppStore = create<AppState>()(
       clearRecentSearches: () => set({ recentSearches: [] }),
     }),
     {
-      name: "lithuanianbd-store",
+      name: "kalbalab-store",
       partialize: (s) => ({
         theme: s.theme,
         uiLanguage: s.uiLanguage,
         audioAutoplay: s.audioAutoplay,
+        voiceId: s.voiceId,
+        dailyGoalXP: s.dailyGoalXP,
+        todayXP: s.todayXP,
+        todayDate: s.todayDate,
         recentSearches: s.recentSearches,
       }),
     }

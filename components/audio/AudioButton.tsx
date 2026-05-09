@@ -4,6 +4,7 @@ import { useState, useCallback } from "react";
 import { Volume2, VolumeX } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { speakLithuanian, stopSpeaking } from "@/lib/audio";
+import { useAppStore } from "@/stores/useAppStore";
 
 interface AudioButtonProps {
   text: string;
@@ -24,6 +25,7 @@ export function AudioButton({
 }: AudioButtonProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isError, setIsError] = useState(false);
+  const voiceId = useAppStore((s) => s.voiceId);
 
   const sizeClass = {
     sm: "w-6 h-6",
@@ -34,7 +36,10 @@ export function AudioButton({
   const iconSize = { sm: 12, md: 15, lg: 18 }[size];
 
   const play = useCallback(
-    async (rate: number = 1) => {
+    async (rate: number, e?: React.MouseEvent) => {
+      // Stop the click from bubbling to ancestors (e.g. the flashcard
+      // wrapper that flips on click).
+      e?.stopPropagation();
       if (isPlaying) {
         stopSpeaking();
         setIsPlaying(false);
@@ -44,7 +49,7 @@ export function AudioButton({
       setIsPlaying(true);
       onPlay?.();
       try {
-        await speakLithuanian(text, rate);
+        await speakLithuanian(text, rate, voiceId);
       } catch {
         setIsError(true);
         setTimeout(() => setIsError(false), 3000);
@@ -52,14 +57,15 @@ export function AudioButton({
         setIsPlaying(false);
       }
     },
-    [text, isPlaying, onPlay]
+    [text, isPlaying, onPlay, voiceId]
   );
 
   return (
     <span className={cn("inline-flex items-center gap-1", className)}>
       <button
         type="button"
-        onClick={() => play(1)}
+        onClick={(e) => play(1, e)}
+        onMouseDown={(e) => e.stopPropagation()}
         className={cn(
           "inline-flex items-center justify-center rounded-full border transition-all",
           "border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20",
@@ -80,7 +86,8 @@ export function AudioButton({
       {showSlow && (
         <button
           type="button"
-          onClick={() => play(0.7)}
+          onClick={(e) => play(0.7, e)}
+          onMouseDown={(e) => e.stopPropagation()}
           className={cn(
             "inline-flex items-center justify-center rounded-full border transition-all text-xs font-medium",
             "border-amber-500/20 bg-amber-500/5 hover:bg-amber-500/15",
