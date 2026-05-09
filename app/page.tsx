@@ -223,7 +223,7 @@ export default function LandingPage() {
             </div>
             <div className="border-t border-white/10 pt-4 space-y-2">
               <p className="text-gray-100 text-lg font-medium">
-                {{ en: "water", bn: "পানি", az: "su", hi: "पानी", ky: "суу", tg: "об", uz: "suv" }[lang] ?? "water"}
+                {({ en: "water", bn: "পানি", az: "su", hi: "पानी", ky: "суу", tg: "об", uz: "suv" } as Multi)[lang] ?? "water"}
               </p>
               <div className="mt-4 p-3 rounded-xl bg-black/30 text-left">
                 <div className="flex items-center gap-2 mb-1">
@@ -231,7 +231,7 @@ export default function LandingPage() {
                   <AudioButton text="Prašau vandens." size="sm" />
                 </div>
                 <p className="text-gray-400 text-xs">
-                  {{ en: "Water, please.", bn: "একটু পানি দিন, দয়া করে।", az: "Zəhmət olmasa, su.", hi: "कृपया पानी दीजिए।", ky: "Сураныч, суу.", tg: "Лутфан, об.", uz: "Iltimos, suv." }[lang] ?? "Water, please."}
+                  {({ en: "Water, please.", bn: "একটু পানি দিন, দয়া করে।", az: "Zəhmət olmasa, su.", hi: "कृपया पानी दीजिए।", ky: "Сураныч, суу.", tg: "Лутфан, об.", uz: "Iltimos, suv." } as Multi)[lang] ?? "Water, please."}
                 </p>
               </div>
             </div>

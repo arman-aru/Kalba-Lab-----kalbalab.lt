@@ -33,7 +33,7 @@ export const LANGUAGES: LanguageOption[] = [
 type Dict = Partial<Record<UILanguage, string>> & { en: string };
 
 // Master translation table. Keys grouped by namespace for readability.
-export const T = {
+const T_DATA = {
   // ---------- Navbar / common ----------
   search:        { en: "Search...",   bn: "খুঁজুন...",          az: "Axtarış...",   hi: "खोजें...",      ky: "Издөө...",      tg: "Ҷустуҷӯ...",   uz: "Qidirish...",         ur: "تلاش کریں...",    ar: "بحث...",          tr: "Ara..." },
   flashcards:    { en: "Flashcards",  bn: "ফ্ল্যাশকার্ড",       az: "Flaşkartlar",  hi: "फ्लैशकार्ड",      ky: "Карточкалар",   tg: "Кортҳои хотиравӣ", uz: "Flashkartalar" },
@@ -340,9 +340,12 @@ export const T = {
   grammarSub:    { en: "Essential A1 grammar with native-language explanations", bn: "মাতৃভাষায় ব্যাখ্যাসহ A1 ব্যাকরণ", az: "Ana dilində izahlarla əsas A1 qrammatikası", hi: "मातृभाषा में व्याख्या के साथ आवश्यक A1 व्याकरण", ky: "Эне тилдеги түшүндүрмөлөр менен A1 негизги грамматикасы", tg: "Грамматикаи асосии A1 бо шарҳҳо ба забони модарӣ", uz: "Ona tilidagi izohlar bilan asosiy A1 grammatikasi" },
 } satisfies Record<string, Dict>;
 
-export type TranslationKey = keyof typeof T;
+export type TranslationKey = keyof typeof T_DATA;
+
+// Widen each entry to Dict so consumers can index by any UILanguage without TS errors.
+export const T: Record<TranslationKey, Dict> = T_DATA;
 
 export function t(key: TranslationKey, lang: UILanguage): string {
-  const entry = T[key] as Partial<Record<UILanguage, string>> & { en: string };
+  const entry = T[key];
   return entry[lang] ?? entry.en;
 }

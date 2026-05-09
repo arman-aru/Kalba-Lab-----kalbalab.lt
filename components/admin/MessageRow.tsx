@@ -13,12 +13,19 @@ type Message = {
   created_at: string;
 };
 
-const ACTIONS = [
+type ActionDef = {
+  value: "read" | "archived" | "spam" | "delete";
+  label: string;
+  icon: typeof Check;
+  danger?: boolean;
+};
+
+const ACTIONS: ActionDef[] = [
   { value: "read",     label: "Mark read", icon: Check },
   { value: "archived", label: "Archive",   icon: Archive },
   { value: "spam",     label: "Spam",      icon: AlertOctagon },
   { value: "delete",   label: "Delete",    icon: Trash2, danger: true },
-] as const;
+];
 
 export function MessageRow({ message }: { message: Message }) {
   const [open, setOpen] = useState(false);

@@ -25,9 +25,17 @@ import type { UserProfile } from "@/types";
 
 // ----------------------------- constants -----------------------------
 
-const WORD_OF_DAY = {
+type Multi = Partial<Record<UILanguage, string>> & { en: string };
+
+const WORD_OF_DAY: {
+  lt: string;
+  part_of_speech: TranslationKey;
+  example_lt: string;
+  meaning: Multi;
+  example: Multi;
+} = {
   lt: "gerai",
-  part_of_speech: "adverb" as TranslationKey,
+  part_of_speech: "adverb",
   example_lt: "Gerai, supratau.",
   meaning: { en: "okay / good",        bn: "ঠিক আছে / ভালো", az: "yaxşı / oldu",   hi: "ठीक है / अच्छा", ky: "макул / жакшы",  tg: "хуб / маъқул",   uz: "yaxshi / mayli" },
   example: { en: "Okay, I understood.", bn: "ঠিক আছে, আমি বুঝেছি।", az: "Yaxşı, başa düşdüm.", hi: "ठीक है, मैं समझ गया।", ky: "Макул, түшүндүм.", tg: "Хуб, фаҳмидам.", uz: "Yaxshi, tushundim." },

@@ -82,7 +82,7 @@ function generateQuizQuestions(count: number, lang: UILanguage): QuizQuestion[] 
     options.splice(correct, 0, { lt: w.lithuanian, native: nativeMeaning(w, lang) });
     return {
       id: w.id,
-      question: QUIZ_QUESTION_TEMPLATE[lang](w.english),
+      question: (QUIZ_QUESTION_TEMPLATE[lang] ?? QUIZ_QUESTION_TEMPLATE.en)(w.english),
       audio_text: w.lithuanian,
       options,
       correct,

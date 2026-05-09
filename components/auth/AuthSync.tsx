@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import type { AuthChangeEvent, Session, User } from "@supabase/supabase-js";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
 import { useAppStore } from "@/stores/useAppStore";
 import { awardXP } from "@/lib/award-xp";
@@ -65,7 +66,7 @@ export function AuthSync() {
     };
 
     // 1. Initial load: read the current session if any.
-    sb.auth.getUser().then(({ data: { user } }) => {
+    sb.auth.getUser().then(({ data: { user } }: { data: { user: User | null } }) => {
       if (!user) {
         setUser(null);
         return;
@@ -74,7 +75,7 @@ export function AuthSync() {
     });
 
     // 2. Live updates on sign-in / sign-out / token refresh.
-    const { data: sub } = sb.auth.onAuthStateChange((event, session) => {
+    const { data: sub } = sb.auth.onAuthStateChange((event: AuthChangeEvent, session: Session | null) => {
       if (event === "SIGNED_OUT" || !session?.user) {
         setUser(null);
         return;

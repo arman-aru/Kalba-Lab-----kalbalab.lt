@@ -62,10 +62,12 @@ export async function POST(req: Request) {
   let body: Body;
   try { body = (await req.json()) as Body; } catch { return Response.json({ error: "bad json" }, { status: 400 }); }
 
-  const { tl, texts, sl = "en" } = body;
-  if (!tl || !Array.isArray(texts)) {
+  const { texts } = body;
+  if (!body.tl || !Array.isArray(texts)) {
     return Response.json({ error: "tl and texts[] required" }, { status: 400 });
   }
+  const tl: string = body.tl;
+  const sl: string = body.sl ?? "en";
   const list = texts.slice(0, 200);
 
   const CONCURRENCY = 6;
@@ -75,7 +77,9 @@ export async function POST(req: Request) {
     while (true) {
       const i = cursor++;
       if (i >= list.length) break;
-      results[i] = await translateOne(list[i], sl, tl);
+      const item = list[i];
+      if (item === undefined) break;
+      results[i] = await translateOne(item, sl, tl);
     }
   }
   await Promise.all(Array.from({ length: Math.min(CONCURRENCY, list.length) }, worker));
