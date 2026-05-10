@@ -6,6 +6,7 @@ import { ArrowRight, Star, Sparkles, Volume2, GraduationCap, Globe2, Headphones,
 import { AudioButton } from "@/components/audio/AudioButton";
 import { AnimatedBackground } from "@/components/ui/AnimatedBackground";
 import { TestimonialSlider } from "@/components/shared/TestimonialSlider";
+import { GlobeHero } from "@/components/home/GlobeHero";
 import { useTranslation } from "@/hooks/useTranslation";
 import type { TranslationKey, UILanguage } from "@/lib/i18n";
 
@@ -107,60 +108,48 @@ export default function HomeClient({
       <div className="relative z-10">
 
       {/* HERO */}
-      <section className="relative pt-20 md:pt-28 pb-24">
-        <div className="max-w-5xl mx-auto px-4 text-center">
-          {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-300 text-sm mb-8 backdrop-blur-sm shadow-[0_0_30px_rgba(245,158,11,0.15)]">
-            <span>🇱🇹 {t("homeBadge")}</span>
-          </div>
+      <section className="relative pt-16 md:pt-24 pb-20">
+        <div className="max-w-7xl mx-auto px-4 grid lg:grid-cols-2 gap-10 lg:gap-12 items-center">
+          {/* Left: copy + CTAs */}
+          <div className="text-center lg:text-left">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-300 text-sm mb-6 backdrop-blur-sm shadow-[0_0_30px_rgba(245,158,11,0.15)]">
+              <span>🇱🇹 {t("homeBadge")}</span>
+            </div>
 
-          {/* Headline */}
-          <h1 className="text-5xl md:text-7xl font-extrabold leading-[1.05] tracking-tight mb-5">
-            <span className="text-shimmer">{t("homeHero1")}</span>
-            <br />
-            <span className="text-gray-100">{t("homeHero2")}</span>
-          </h1>
+            <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold leading-[1.05] tracking-tight mb-5">
+              <span className="text-shimmer">{t("homeHero1")}</span>
+              <br />
+              <span className="text-gray-100">{t("homeHero2")}</span>
+            </h1>
 
-          <p className="text-lg md:text-xl text-emerald-300/90 font-medium mb-3">{t("homeSubtitle1")}</p>
-          <p className="text-gray-400 text-base md:text-lg mb-10 max-w-2xl mx-auto leading-relaxed">{t("homeSubtitle2")}</p>
+            <p className="text-lg md:text-xl text-emerald-300/90 font-medium mb-3">{t("homeSubtitle1")}</p>
+            <p className="text-gray-400 text-base md:text-lg mb-8 lg:max-w-xl leading-relaxed">{t("homeSubtitle2")}</p>
 
-          {/* CTAs */}
-          <div className="flex flex-col sm:flex-row gap-3 justify-center mb-6">
-            <Link
-              href="/register"
-              className="group relative inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-bold text-base transition-all hover:scale-[1.03] shadow-lg shadow-amber-500/25"
-            >
-              <span>{t("start")}</span>
-              <ArrowRight size={18} className="transition-transform group-hover:translate-x-0.5" />
-            </Link>
-            <Link
-              href="/vocabulary"
-              className="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl border border-white/10 hover:border-amber-500/40 bg-white/[0.02] hover:bg-white/[0.05] text-gray-200 font-semibold text-base backdrop-blur-sm transition-all"
-            >
-              {t("viewDemo")}
-            </Link>
-          </div>
-
-          {/* Trust line */}
-          <p className="text-xs text-gray-500 mb-12 inline-flex items-center gap-2">
-            <Star size={12} className="fill-amber-400 text-amber-400" />
-            {t("trustedBy")} · {t("freeForever")}
-          </p>
-
-          {/* Sample phrase cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-2xl mx-auto">
-            {SAMPLE_PHRASES.map((p) => (
-              <div
-                key={p.lt}
-                className="group rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-md p-4 text-left hover:border-amber-500/30 hover:bg-white/[0.06] transition-all"
+            <div className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start mb-5">
+              <Link
+                href="/register"
+                className="group relative inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-bold text-base transition-all hover:scale-[1.03] shadow-lg shadow-amber-500/25"
               >
-                <div className="flex items-center justify-between gap-2 mb-1">
-                  <span className="font-bold text-amber-400 text-base">{p.lt}</span>
-                  <AudioButton text={p.lt} size="sm" />
-                </div>
-                <span className="text-sm text-gray-300">{PHRASE_TRANSLATIONS[p.key][lang] ?? PHRASE_TRANSLATIONS[p.key].en}</span>
-              </div>
-            ))}
+                <span>{t("start")}</span>
+                <ArrowRight size={18} className="transition-transform group-hover:translate-x-0.5" />
+              </Link>
+              <Link
+                href="/vocabulary"
+                className="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl border border-white/10 hover:border-amber-500/40 bg-white/[0.02] hover:bg-white/[0.05] text-gray-200 font-semibold text-base backdrop-blur-sm transition-all"
+              >
+                {t("viewDemo")}
+              </Link>
+            </div>
+
+            <p className="text-xs text-gray-500 inline-flex items-center gap-2">
+              <Star size={12} className="fill-amber-400 text-amber-400" />
+              {t("trustedBy")} · {t("freeForever")}
+            </p>
+          </div>
+
+          {/* Right: interactive globe + speech bubbles */}
+          <div className="relative">
+            <GlobeHero />
           </div>
         </div>
       </section>
