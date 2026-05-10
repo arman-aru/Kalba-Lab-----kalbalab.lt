@@ -40,7 +40,10 @@ async function azureNeuralTTS(voiceName: string, text: string, slow: boolean): P
       status: 200,
       headers: {
         "Content-Type": "audio/mpeg",
-        "Cache-Control": "public, max-age=2592000, immutable",
+        // `private` keeps Netlify's edge CDN out of the loop — every visitor's
+        // browser still caches by full URL (?text=…) so repeated plays are
+        // free, but the CDN can't accidentally collapse different queries.
+        "Cache-Control": "private, max-age=604800",
       },
     });
   } catch (err) {
