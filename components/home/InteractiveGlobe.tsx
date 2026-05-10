@@ -1,8 +1,7 @@
 "use client";
 
-import { useMemo } from "react";
-import { Canvas } from "@react-three/fiber";
-import { OrbitControls } from "@react-three/drei";
+import { useMemo, useRef } from "react";
+import { Canvas, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 
 /**
@@ -109,33 +108,43 @@ function Globe() {
     return g;
   }, []);
 
+  // Auto-rotate the whole globe (sphere + dots + halo) on the Y-axis.
+  // Rings stay fixed so they read as "orbits around" rather than "painted on".
+  const sphereRef = useRef<THREE.Group>(null);
+  useFrame((_, delta) => {
+    if (sphereRef.current) sphereRef.current.rotation.y += delta * 0.25;
+  });
+
   return (
     <group>
-      {/* Solid dark interior so the back of the sphere is fully opaque. */}
-      <mesh>
-        <sphereGeometry args={[1.97, 64, 64]} />
-        <meshBasicMaterial color="#0a0604" />
-      </mesh>
+      {/* Sphere + dots + halo rotate together on Y-axis (auto-rotation). */}
+      <group ref={sphereRef}>
+        {/* Solid dark interior so the back of the sphere is fully opaque. */}
+        <mesh>
+          <sphereGeometry args={[1.97, 64, 64]} />
+          <meshBasicMaterial color="#0a0604" />
+        </mesh>
 
-      {/* Land-mass dots — only "continent" points are emitted, so the dark
-          sphere underneath shows through as ocean. */}
-      <points geometry={dotsGeometry}>
-        <pointsMaterial
-          size={0.075}
-          color="#fbbf24"
-          transparent
-          opacity={1}
-          sizeAttenuation
-        />
-      </points>
+        {/* Land-mass dots — only "continent" points are emitted, so the dark
+            sphere underneath shows through as ocean. */}
+        <points geometry={dotsGeometry}>
+          <pointsMaterial
+            size={0.075}
+            color="#fbbf24"
+            transparent
+            opacity={1}
+            sizeAttenuation
+          />
+        </points>
 
-      {/* Subtle outer glow halo */}
-      <mesh>
-        <sphereGeometry args={[2.05, 32, 32]} />
-        <meshBasicMaterial color="#fbbf24" transparent opacity={0.05} side={2} />
-      </mesh>
+        {/* Subtle outer glow halo */}
+        <mesh>
+          <sphereGeometry args={[2.05, 32, 32]} />
+          <meshBasicMaterial color="#fbbf24" transparent opacity={0.05} side={2} />
+        </mesh>
+      </group>
 
-      {/* Orbital rings — two thin tori at different tilts. */}
+      {/* Orbital rings stay fixed — they read as orbits AROUND the globe. */}
       <mesh rotation={[Math.PI / 2.2, 0, 0]}>
         <torusGeometry args={[2.45, 0.006, 16, 128]} />
         <meshBasicMaterial color="#fbbf24" transparent opacity={0.4} />
@@ -152,23 +161,13 @@ export default function InteractiveGlobe() {
   return (
     <Canvas
       // Camera pulled back + slightly wider FOV so the orbital rings (~r 2.6)
-      // and the bubble overlays don't clip the globe at the canvas edges.
+      // don't clip the globe at the canvas edges.
       camera={{ position: [0, 0, 7.2], fov: 42 }}
       dpr={[1, 2]}
       gl={{ antialias: true, alpha: true }}
-      style={{ touchAction: "none" }}
     >
       <ambientLight intensity={0.7} />
       <Globe />
-      <OrbitControls
-        enableZoom={false}
-        enablePan={false}
-        autoRotate
-        autoRotateSpeed={0.6}
-        rotateSpeed={0.6}
-        enableDamping
-        dampingFactor={0.08}
-      />
     </Canvas>
   );
 }

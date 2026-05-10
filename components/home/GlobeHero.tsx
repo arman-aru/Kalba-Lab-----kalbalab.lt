@@ -48,13 +48,6 @@ export function GlobeHero() {
         </div>
       ))}
 
-      {/* Helpful hint that the globe is interactive */}
-      <p
-        aria-hidden
-        className="absolute -bottom-1 left-1/2 -translate-x-1/2 text-[10px] uppercase tracking-[0.2em] text-gray-600 pointer-events-none"
-      >
-        Drag to rotate
-      </p>
     </div>
   );
 }
