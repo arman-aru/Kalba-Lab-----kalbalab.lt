@@ -265,10 +265,10 @@ export function Navbar() {
                       </div>
                     </div>
 
-                    {/* Settings link */}
+                    {/* Settings link — anchors to the Settings card on /profile. */}
                     <div className="border-t border-white/10 py-1">
                       <Link
-                        href="/profile"
+                        href="/profile#settings"
                         onClick={() => setUserMenuOpen(false)}
                         className="flex items-center gap-2.5 px-3 py-2 text-sm text-gray-300 hover:text-amber-300 hover:bg-white/5 transition-colors"
                       >
@@ -369,15 +369,17 @@ export function Navbar() {
         />
         <div
           className={cn(
-            "absolute top-14 left-2 right-2 rounded-2xl border border-white/10 bg-[var(--surface)]/95 backdrop-blur-xl shadow-2xl transition-all duration-300 overflow-hidden",
+            // Cap height so the bottom CTA never falls off small screens.
+            // Inside, links scroll while the Sign In stays pinned.
+            "absolute top-14 left-2 right-2 max-h-[calc(100vh-5rem)] flex flex-col rounded-2xl border border-white/10 bg-[var(--surface)]/95 backdrop-blur-xl shadow-2xl transition-all duration-300 overflow-hidden",
             mobileOpen ? "translate-y-0 opacity-100" : "-translate-y-4 opacity-0"
           )}
         >
-          <div className="p-3">
-            <p className="px-2 pb-2 text-[10px] font-semibold uppercase tracking-wider text-gray-500">
+          <div className="p-3 overflow-y-auto flex-1 min-h-0">
+            <p className="px-1 pb-1.5 text-[10px] font-semibold uppercase tracking-wider text-gray-500">
               Navigate
             </p>
-            <div className="flex flex-col gap-1">
+            <div className="grid grid-cols-2 gap-1.5">
               {NAV_LINKS.map((link, i) => {
                 const active = isActive(link.href);
                 return (
@@ -386,57 +388,57 @@ export function Navbar() {
                     href={link.href}
                     onClick={() => setMobileOpen(false)}
                     className={cn(
-                      "flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all",
+                      "flex items-center gap-2 px-2.5 py-2.5 rounded-xl text-sm font-medium transition-all",
                       active
                         ? "bg-amber-500/10 text-amber-300 ring-1 ring-amber-500/30"
                         : "text-gray-300 hover:bg-white/5 hover:text-gray-100"
                     )}
-                    style={{ animation: mobileOpen ? `slideIn 280ms ease-out ${i * 40}ms backwards` : undefined }}
+                    style={{ animation: mobileOpen ? `slideIn 220ms ease-out ${i * 30}ms backwards` : undefined }}
                   >
                     <span className={cn(
-                      "inline-flex h-8 w-8 items-center justify-center rounded-lg",
+                      "inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg",
                       active ? "bg-amber-500/15 text-amber-300" : "bg-white/5 text-gray-400"
                     )}>
-                      <link.icon size={15} />
+                      <link.icon size={13} />
                     </span>
-                    <span className="flex-1">{tr(link.key)}</span>
-                    {active && <span className="h-1.5 w-1.5 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(245,158,11,0.8)]" />}
+                    <span className="truncate">{tr(link.key)}</span>
                   </Link>
                 );
               })}
             </div>
 
-
-            {/* Footer / static pages — visible to both signed-out and any
-                fallback paths into this drawer. */}
+            {/* Footer / static pages */}
             <div className="mt-3 pt-3 border-t border-white/10">
-              <p className="px-2 pb-1.5 text-[10px] font-semibold uppercase tracking-wider text-gray-500">More</p>
+              <p className="px-1 pb-1.5 text-[10px] font-semibold uppercase tracking-wider text-gray-500">More</p>
               <div className="grid grid-cols-2 gap-1">
                 {FOOTER_LINKS.map((link) => (
                   <Link
                     key={`mob-foot-${link.href}`}
                     href={link.href}
                     onClick={() => setMobileOpen(false)}
-                    className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm text-gray-300 hover:bg-white/5 hover:text-amber-300 transition-colors"
+                    className="flex items-center gap-2 px-2.5 py-2 rounded-lg text-sm text-gray-300 hover:bg-white/5 hover:text-amber-300 transition-colors"
                   >
-                    <link.icon size={14} />
-                    {link.label}
+                    <link.icon size={13} className="shrink-0" />
+                    <span className="truncate">{link.label}</span>
                   </Link>
                 ))}
               </div>
             </div>
+          </div>
 
-            {!user && (
+          {/* Pinned CTA — stays in view even when the link list scrolls. */}
+          {!user && (
+            <div className="shrink-0 p-3 border-t border-white/10 bg-[var(--surface)]/95">
               <Link
                 href="/login"
                 onClick={() => setMobileOpen(false)}
-                className="mt-3 flex items-center justify-center gap-1.5 px-3 py-3 rounded-xl bg-linear-to-b from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-black text-sm font-bold transition-all"
+                className="flex items-center justify-center gap-1.5 px-3 py-3 rounded-xl bg-linear-to-b from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-black text-sm font-bold transition-all"
               >
                 <Sparkles size={14} />
                 {tr("signIn")}
               </Link>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
     </>

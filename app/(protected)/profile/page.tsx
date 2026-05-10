@@ -484,8 +484,8 @@ export default function ProfilePage() {
 
         {/* ============== SETTINGS + ACHIEVEMENTS ============== */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Settings */}
-          <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[var(--surface)]/60 backdrop-blur-sm p-6 anim-fade-up">
+          {/* Settings — id="settings" so /profile#settings scrolls here from the menu. */}
+          <div id="settings" className="relative overflow-hidden rounded-2xl border border-white/10 bg-[var(--surface)]/60 backdrop-blur-sm p-6 anim-fade-up scroll-mt-24">
             <h3 className="font-bold text-gray-100 mb-4 flex items-center gap-2">
               <SettingsIcon size={15} className="text-amber-300" />
               {t("settings")}

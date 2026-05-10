@@ -56,8 +56,8 @@ export async function middleware(req: NextRequest) {
 
   // Already signed in → bounce off /login and /register.
   if (isAuthGuest && user) {
-    const next = req.nextUrl.searchParams.get("redirect") || "/dashboard";
-    return NextResponse.redirect(new URL(next.startsWith("/") ? next : "/dashboard", req.url));
+    const next = req.nextUrl.searchParams.get("redirect") || "/profile";
+    return NextResponse.redirect(new URL(next.startsWith("/") ? next : "/profile", req.url));
   }
 
   // Protected app pages → require auth.

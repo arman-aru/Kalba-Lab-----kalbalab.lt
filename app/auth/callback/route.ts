@@ -7,7 +7,7 @@ export const runtime = "nodejs";
 export async function GET(req: Request) {
   const { searchParams, origin } = new URL(req.url);
   const code = searchParams.get("code");
-  const next = searchParams.get("next") || "/dashboard";
+  const next = searchParams.get("next") || "/profile";
   const error = searchParams.get("error_description") || searchParams.get("error");
 
   if (error) {

@@ -52,8 +52,11 @@ export default function RegisterPage() {
       }
       // Hard navigation so the freshly-set Supabase auth cookie is included
       // in the very next request — otherwise middleware can race the cookie
-      // and bounce a brand-new user back to /login after register.
-      window.location.replace("/profile");
+      // and bounce a brand-new user back to /login. Honour the same
+      // ?redirect / ?next params that middleware uses.
+      const sp = new URLSearchParams(window.location.search);
+      const target = sp.get("redirect") || sp.get("next") || "/profile";
+      window.location.replace(target.startsWith("/") ? target : "/profile");
       return;
     } catch (err) {
       setError(err instanceof Error ? err.message : t("registerFailed"));
@@ -169,7 +172,7 @@ export default function RegisterPage() {
             </div>
           </div>
 
-          <GoogleButton label={t("signUpGoogle")} next="/dashboard" />
+          <GoogleButton label={t("signUpGoogle")} next="/profile" />
         </div>
 
         <p className="text-center text-sm text-gray-500 mt-6">

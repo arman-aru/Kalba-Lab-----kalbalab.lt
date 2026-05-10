@@ -34,10 +34,13 @@ export default function LoginPage() {
       });
       if (e) throw e;
       // Hard navigation so the freshly-set Supabase auth cookie is sent on
-      // the very next request — avoids the race where the middleware reads
-      // the request before the cookie is attached and redirects back to /login.
-      const next = new URLSearchParams(window.location.search).get("next");
-      window.location.replace(next && next.startsWith("/") ? next : "/profile");
+      // the very next request — avoids the race where middleware reads the
+      // request before the cookie is attached and redirects back to /login.
+      // Middleware sets `?redirect=…` when bouncing protected pages; we also
+      // accept `?next=…` for older deep links. Default lands on /dashboard.
+      const sp = new URLSearchParams(window.location.search);
+      const target = sp.get("redirect") || sp.get("next") || "/profile";
+      window.location.replace(target.startsWith("/") ? target : "/profile");
       return;
     } catch (err) {
       setError(err instanceof Error ? err.message : t("loginFailed"));
@@ -136,7 +139,7 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <GoogleButton label={t("signInGoogle")} next="/dashboard" />
+          <GoogleButton label={t("signInGoogle")} next="/profile" />
         </div>
 
         <p className="text-center text-sm text-gray-500 mt-6">
