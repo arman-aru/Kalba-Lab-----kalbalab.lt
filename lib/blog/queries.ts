@@ -1,5 +1,5 @@
 import "server-only";
-import { getSupabaseServer } from "@/lib/supabase-server";
+import { createClient } from "@supabase/supabase-js";
 import {
   BLOG_CATEGORIES,
   type BlogCategory,
@@ -12,6 +12,19 @@ import {
   type ImageRef,
   type Seo,
 } from "./schema";
+
+/**
+ * Cookie-less anon client. Public blog reads only need the public RLS rules,
+ * so we don't want to call cookies() — that would make the route handler /
+ * page dynamic, and would break generateStaticParams at build time.
+ */
+function getSupabasePublic() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
+  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
+  return createClient(url, anon, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+}
 
 type PostRow = {
   id: string;
@@ -73,7 +86,7 @@ function pickTranslation(
 }
 
 export async function listPublishedSlugs(): Promise<string[]> {
-  const sb = await getSupabaseServer();
+  const sb = getSupabasePublic();
   const { data, error } = await sb
     .from("blog_posts")
     .select("slug")
@@ -95,7 +108,7 @@ export async function listPublishedPosts(opts: {
   const limit = Math.min(opts.limit ?? 24, 100);
   const offset = opts.offset ?? 0;
 
-  const sb = await getSupabaseServer();
+  const sb = getSupabasePublic();
   let query = sb
     .from("blog_posts")
     .select("id, slug, status, category_slug, primary_locale, tags, featured_image, author_id, reading_minutes, published_at, updated_at")
@@ -147,7 +160,7 @@ export async function getPostBySlug(
   slug: string,
   locale: BlogLocale = "en",
 ): Promise<BlogPostFull | null> {
-  const sb = await getSupabaseServer();
+  const sb = getSupabasePublic();
   const { data: post, error } = await sb
     .from("blog_posts")
     .select("id, slug, status, category_slug, primary_locale, tags, featured_image, author_id, reading_minutes, published_at, updated_at")
@@ -203,7 +216,7 @@ export async function getPostBySlug(
 export async function listCategoriesWithCounts(): Promise<
   Array<{ slug: BlogCategorySlug; name: string; count: number }>
 > {
-  const sb = await getSupabaseServer();
+  const sb = getSupabasePublic();
   const { data } = await sb
     .from("blog_posts")
     .select("category_slug")
