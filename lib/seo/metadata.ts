@@ -35,14 +35,25 @@ export function buildMetadata(args: BuildMetadataArgs): Metadata {
         )
       : hreflangFor(args.path);
 
+  // Every page gets a share image. Per-page overrides win; the default is
+  // the brand share card so Facebook / WhatsApp / X / LinkedIn / Discord /
+  // Slack / Telegram / Pinterest all show a rich preview even on pages
+  // (privacy, terms, etc.) where we never set one explicitly.
   const ogImage = args.image
     ? [{
         url: abs(args.image.url),
         width: args.image.width,
         height: args.image.height,
         alt: args.image.alt ?? args.title,
+        type: "image/png",
       }]
-    : undefined;
+    : [{
+        url: abs("/social-share-kalbalab.png"),
+        width: 1730,
+        height: 909,
+        alt: args.title,
+        type: "image/png",
+      }];
 
   return {
     title: args.title,

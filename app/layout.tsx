@@ -21,11 +21,24 @@ export const metadata: Metadata = {
     url: "https://kalbalab.lt",
     siteName: "KalbaLab",
     type: "website",
+    locale: "en_US",
+    // Default share image for every platform that reads OG (Facebook,
+    // LinkedIn, Messenger, WhatsApp, Slack, Discord, Telegram, Pinterest).
+    images: [
+      {
+        url: "/social-share-kalbalab.png",
+        width: 1730,
+        height: 909,
+        alt: "KalbaLab — Learn Lithuanian, in your language",
+        type: "image/png",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "KalbaLab — Learn Lithuanian, in your language",
     description: "Multilingual Lithuanian learning + A1 exam prep.",
+    images: ["/social-share-kalbalab.png"],
   },
   icons: {
     icon: [

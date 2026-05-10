@@ -23,7 +23,8 @@ export const metadata: Metadata = buildMetadata({
     "Learn Lithuanian with native audio, multilingual explanations (Bengali, Hindi, Urdu, Uzbek, Tajik, Kyrgyz, Azerbaijani, Arabic, Turkish, English) and complete A1 integration-exam preparation.",
   path: "/",
   type: "website",
-  image: { url: "/favicon_io/android-chrome-512x512.png", width: 512, height: 512, alt: "KalbaLab" },
+  // No explicit image — buildMetadata falls back to the site-wide
+  // /social-share-kalbalab.png defined in lib/seo/metadata.ts.
 });
 
 const HOME_FAQ = [
