@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import {
   Search, BookOpen, FlipHorizontal, GraduationCap,
   LayoutDashboard, LogOut, Menu, X, Sparkles, FlaskConical, Settings, ShieldCheck, Star,
+  FileText, MessageSquare, HelpCircle, Info, Shield, ScrollText, Cookie,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/stores/useAppStore";
@@ -19,6 +20,20 @@ const NAV_LINKS: { href: string; key: TranslationKey; icon: typeof BookOpen }[] 
   { href: "/vocabulary", key: "vocabulary", icon: BookOpen },
   { href: "/lessons",    key: "lessons",    icon: BookOpen },
   { href: "/exam-prep",  key: "examPrep",   icon: GraduationCap },
+];
+
+// Footer pages surfaced in both the mobile drawer (signed-out users) and the
+// avatar dropdown (signed-in users) so everything is reachable from one menu.
+// `label` is plain text; we don't gate these behind translation keys because
+// the labels are short and language-neutral.
+const FOOTER_LINKS: { href: string; label: string; icon: typeof BookOpen }[] = [
+  { href: "/blog",    label: "Blog",    icon: FileText },
+  { href: "/about",   label: "About",   icon: Info },
+  { href: "/contact", label: "Contact", icon: MessageSquare },
+  { href: "/faq",     label: "FAQ",     icon: HelpCircle },
+  { href: "/privacy", label: "Privacy", icon: Shield },
+  { href: "/terms",   label: "Terms",   icon: ScrollText },
+  { href: "/cookies", label: "Cookies", icon: Cookie },
 ];
 
 export function Navbar() {
@@ -165,13 +180,13 @@ export function Navbar() {
                   aria-label="Account menu"
                   aria-expanded={userMenuOpen}
                 >
-                  <span className="relative inline-flex h-7 w-7 items-center justify-center rounded-lg overflow-hidden bg-amber-500/20 ring-1 ring-amber-500/40 text-amber-200 font-bold text-xs">
-                    {user.avatar_url ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={user.avatar_url} alt="" className="absolute inset-0 h-full w-full object-cover" />
-                    ) : (
-                      <>{user.full_name?.[0]?.toUpperCase() ?? user.email?.[0]?.toUpperCase() ?? "U"}</>
-                    )}
+                  <span className="relative inline-flex h-7 w-7 items-center justify-center rounded-lg overflow-hidden bg-amber-500/20 ring-1 ring-amber-500/40">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={user.avatar_url || "/default-avatar.svg"}
+                      alt=""
+                      className="absolute inset-0 h-full w-full object-cover"
+                    />
                   </span>
                   <span className="hidden lg:flex flex-col items-start leading-tight max-w-[110px]">
                     <span className="text-[11px] text-amber-200/70 -mb-0.5">Hi,</span>
@@ -192,13 +207,13 @@ export function Navbar() {
                     {/* Header card */}
                     <div className="px-4 pt-4 pb-3 bg-linear-to-br from-amber-500/10 via-transparent to-transparent border-b border-white/10">
                       <div className="flex items-center gap-3">
-                        <span className="relative inline-flex h-11 w-11 items-center justify-center rounded-xl overflow-hidden bg-amber-500/20 ring-1 ring-amber-500/40 text-amber-200 font-bold">
-                          {user.avatar_url ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img src={user.avatar_url} alt="" className="absolute inset-0 h-full w-full object-cover" />
-                          ) : (
-                            <>{user.full_name?.[0]?.toUpperCase() ?? user.email?.[0]?.toUpperCase() ?? "U"}</>
-                          )}
+                        <span className="relative inline-flex h-11 w-11 items-center justify-center rounded-xl overflow-hidden bg-amber-500/20 ring-1 ring-amber-500/40">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={user.avatar_url || "/default-avatar.svg"}
+                            alt=""
+                            className="absolute inset-0 h-full w-full object-cover"
+                          />
                         </span>
                         <div className="min-w-0 flex-1">
                           <p className="text-sm font-semibold text-gray-100 truncate">{user.full_name || "Learner"}</p>
@@ -255,6 +270,22 @@ export function Navbar() {
                         <Settings size={14} />
                         Settings
                       </Link>
+                    </div>
+
+                    {/* Footer / static pages */}
+                    <div className="border-t border-white/10 py-1">
+                      <p className="px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-gray-500">More</p>
+                      {FOOTER_LINKS.map((link) => (
+                        <Link
+                          key={`menu-${link.href}`}
+                          href={link.href}
+                          onClick={() => setUserMenuOpen(false)}
+                          className="flex items-center gap-2.5 px-3 py-2 text-sm text-gray-300 hover:text-amber-300 hover:bg-white/5 transition-colors"
+                        >
+                          <link.icon size={14} />
+                          {link.label}
+                        </Link>
+                      ))}
                     </div>
 
                     {/* Admin shortcut */}
@@ -362,6 +393,25 @@ export function Navbar() {
               })}
             </div>
 
+
+            {/* Footer / static pages — visible to both signed-out and any
+                fallback paths into this drawer. */}
+            <div className="mt-3 pt-3 border-t border-white/10">
+              <p className="px-2 pb-1.5 text-[10px] font-semibold uppercase tracking-wider text-gray-500">More</p>
+              <div className="grid grid-cols-2 gap-1">
+                {FOOTER_LINKS.map((link) => (
+                  <Link
+                    key={`mob-foot-${link.href}`}
+                    href={link.href}
+                    onClick={() => setMobileOpen(false)}
+                    className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm text-gray-300 hover:bg-white/5 hover:text-amber-300 transition-colors"
+                  >
+                    <link.icon size={14} />
+                    {link.label}
+                  </Link>
+                ))}
+              </div>
+            </div>
 
             {!user && (
               <Link

@@ -33,3 +33,40 @@ export async function hashIp(ip: string): Promise<string> {
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
 }
+
+/**
+ * Defence-in-depth CSRF check for state-changing JSON endpoints.
+ *
+ * SameSite=Lax cookies (Supabase default) already block cross-site form
+ * submissions, but a JSON POST from another origin would still ride the
+ * session if the browser allowed it. Verifying Origin against Host closes
+ * that gap.
+ *
+ * Returns true when Origin (or Referer fallback) matches Host. If neither
+ * header is present (typical of non-browser clients), it allows the request
+ * through — those callers still pass through rate limiting and input
+ * validation downstream.
+ */
+export function sameOriginOk(req: Request): boolean {
+  const host = req.headers.get("host");
+  if (!host) return true;
+
+  const origin = req.headers.get("origin");
+  if (origin) {
+    try {
+      return new URL(origin).host === host;
+    } catch {
+      return false;
+    }
+  }
+
+  const referer = req.headers.get("referer");
+  if (referer) {
+    try {
+      return new URL(referer).host === host;
+    } catch {
+      return false;
+    }
+  }
+  return true;
+}

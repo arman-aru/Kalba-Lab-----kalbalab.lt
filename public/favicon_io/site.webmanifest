@@ -1,1 +1,24 @@
-{"name":"","short_name":"","icons":[{"src":"/android-chrome-192x192.png","sizes":"192x192","type":"image/png"},{"src":"/android-chrome-512x512.png","sizes":"512x512","type":"image/png"}],"theme_color":"#ffffff","background_color":"#ffffff","display":"standalone"}
+{
+  "name": "Kalba Lab — Learn Lithuanian",
+  "short_name": "KalbaLab",
+  "description": "Learn Lithuanian in your own language — vocabulary, lessons, audio and A1 exam prep.",
+  "start_url": "/profile",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#0a0a0a",
+  "background_color": "#0a0a0a",
+  "lang": "en",
+  "categories": ["education", "language"],
+  "icons": [
+    { "src": "/favicon_io/android-chrome-192x192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/favicon_io/android-chrome-512x512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/favicon_io/android-chrome-192x192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "/favicon_io/android-chrome-512x512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Flashcards", "short_name": "Flashcards", "url": "/flashcards",  "icons": [{ "src": "/favicon_io/android-chrome-192x192.png", "sizes": "192x192" }] },
+    { "name": "Lessons",    "short_name": "Lessons",    "url": "/lessons",     "icons": [{ "src": "/favicon_io/android-chrome-192x192.png", "sizes": "192x192" }] },
+    { "name": "Vocabulary", "short_name": "Vocabulary", "url": "/vocabulary",  "icons": [{ "src": "/favicon_io/android-chrome-192x192.png", "sizes": "192x192" }] }
+  ]
+}

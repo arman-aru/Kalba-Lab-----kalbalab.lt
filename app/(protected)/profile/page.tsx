@@ -223,13 +223,13 @@ export default function ProfilePage() {
             <div className="relative flex flex-col md:flex-row md:items-center gap-6">
               {/* Avatar */}
               <div className="relative shrink-0 self-start">
-                <div className="relative w-24 h-24 md:w-28 md:h-28 rounded-2xl overflow-hidden bg-amber-500/20 ring-2 ring-amber-500/40 flex items-center justify-center text-4xl font-bold text-amber-300 shadow-[0_8px_30px_-8px_rgba(245,158,11,0.5)]">
-                  {user.avatar_url ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={user.avatar_url} alt="" className="absolute inset-0 h-full w-full object-cover" />
-                  ) : (
-                    <span>{user.full_name?.[0]?.toUpperCase() ?? user.email?.[0]?.toUpperCase() ?? "?"}</span>
-                  )}
+                <div className="relative w-24 h-24 md:w-28 md:h-28 rounded-2xl overflow-hidden bg-amber-500/20 ring-2 ring-amber-500/40 flex items-center justify-center shadow-[0_8px_30px_-8px_rgba(245,158,11,0.5)]">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={user.avatar_url || "/default-avatar.svg"}
+                    alt=""
+                    className="absolute inset-0 h-full w-full object-cover"
+                  />
                   {avatarBusy && (
                     <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                       <Loader2 size={22} className="animate-spin text-amber-300" />

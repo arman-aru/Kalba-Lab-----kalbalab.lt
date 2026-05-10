@@ -1,12 +1,28 @@
-import type { Metadata } from "next";
 import { InfoPageShell, ContentCard } from "@/components/ui/InfoPageShell";
+import { SEO } from "@/components/seo/SEO";
+import { buildMetadata } from "@/lib/seo/metadata";
+import { breadcrumbLd } from "@/lib/seo/jsonld";
+import { SITE, abs } from "@/lib/seo/site";
 
-export const metadata: Metadata = {
+export const metadata = buildMetadata({
   title: "Cookie Policy",
-  description: "Exactly which cookies and localStorage entries KalbaLab uses, and why.",
-};
+  description:
+    "Exactly which cookies and localStorage entries KalbaLab uses, and why. KalbaLab uses no marketing or third-party tracking cookies.",
+  path: "/cookies",
+});
 
 const LAST_UPDATED = "2026-05-08";
+
+const COOKIES_LD = {
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "@id": abs("/cookies"),
+  url: abs("/cookies"),
+  name: "Cookie Policy",
+  inLanguage: "en",
+  isPartOf: { "@id": `${SITE.url}#website` },
+  dateModified: LAST_UPDATED,
+};
 
 const COOKIES = [
   {
@@ -34,6 +50,14 @@ const COOKIES = [
 
 export default function CookiesPage() {
   return (
+    <>
+      <SEO blocks={[
+        COOKIES_LD,
+        breadcrumbLd([
+          { name: "Home", url: SITE.url },
+          { name: "Cookies", url: abs("/cookies") },
+        ]),
+      ]} />
     <InfoPageShell
       eyebrow="Cookies"
       title="Cookie Policy"
@@ -125,5 +149,6 @@ export default function CookiesPage() {
         </ContentCard>
       </div>
     </InfoPageShell>
+    </>
   );
 }

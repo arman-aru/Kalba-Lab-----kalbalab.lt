@@ -4,6 +4,8 @@
 // Uses the MyMemory free translation API (no key required, ~50k chars/day
 // anonymously). Each (sl, tl, text) is deterministic so we cache hard.
 
+import { getClientIp, rateLimit, sameOriginOk } from "@/lib/rate-limit";
+
 export const runtime = "edge";
 
 const TARGET = "https://api.mymemory.translated.net/get";
@@ -59,6 +61,17 @@ async function translateOne(text: string, sl: string, tl: string): Promise<strin
 }
 
 export async function POST(req: Request) {
+  // Same-origin check + IP rate limit so attackers can't burn our MyMemory
+  // free-tier quota or pin our edge runtime under sustained load.
+  if (!sameOriginOk(req)) {
+    return Response.json({ error: "Forbidden" }, { status: 403 });
+  }
+  const ip = getClientIp(req);
+  const rl = rateLimit(`translate:${ip}`, 60, 60 * 60 * 1000); // 60/hour per IP
+  if (!rl.ok) {
+    return Response.json({ error: "Too many requests" }, { status: 429 });
+  }
+
   let body: Body;
   try { body = (await req.json()) as Body; } catch { return Response.json({ error: "bad json" }, { status: 400 }); }
 
@@ -66,9 +79,14 @@ export async function POST(req: Request) {
   if (!body.tl || !Array.isArray(texts)) {
     return Response.json({ error: "tl and texts[] required" }, { status: 400 });
   }
-  const tl: string = body.tl;
-  const sl: string = body.sl ?? "en";
-  const list = texts.slice(0, 200);
+  // Hard caps on per-request size and per-string length to prevent abuse of
+  // the free MyMemory tier and keep the worker pool bounded.
+  const tl: string = String(body.tl).slice(0, 8);
+  const sl: string = String(body.sl ?? "en").slice(0, 8);
+  const list = texts
+    .filter((t): t is string => typeof t === "string")
+    .map((t) => t.slice(0, 500))
+    .slice(0, 100);
 
   const CONCURRENCY = 6;
   const results: (string | null)[] = new Array(list.length).fill(null);

@@ -1,5 +1,5 @@
 import { getSupabaseAdmin, supabaseConfigured } from "@/lib/supabase-server";
-import { getClientIp, hashIp, rateLimit } from "@/lib/rate-limit";
+import { getClientIp, hashIp, rateLimit, sameOriginOk } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 
@@ -7,6 +7,9 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const ALLOWED_SOURCES = new Set(["homepage", "footer", "contact", "dashboard", "other"]);
 
 export async function POST(req: Request) {
+  if (!sameOriginOk(req)) {
+    return Response.json({ error: "Forbidden" }, { status: 403 });
+  }
   if (!supabaseConfigured() || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
     return Response.json({ error: "Service not configured" }, { status: 503 });
   }

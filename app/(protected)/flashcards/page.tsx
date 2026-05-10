@@ -275,7 +275,12 @@ export default function FlashcardsPage() {
             <div className="card-surface p-10 text-center">
               <div className="text-5xl mb-4">🚧</div>
               <h2 className="text-xl font-bold text-gray-100 mb-2">{t("comingSoon")}</h2>
-              <p className="text-gray-400 text-sm mb-6 max-w-sm mx-auto">{t("comingSoonDesc")}</p>
+              <p className="text-gray-400 text-sm mb-2 max-w-sm mx-auto">{t("comingSoonDesc")}</p>
+              {(level === "A2" || level === "B1") && (
+                <p className="text-xs text-gray-500 mb-6 max-w-sm mx-auto">
+                  No {level} flashcards yet — A1 has 220 cards ready to go.
+                </p>
+              )}
               <button
                 onClick={() => { setLevel("A1"); setCurrentIndex(0); }}
                 className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-semibold transition-all"

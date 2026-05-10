@@ -268,54 +268,59 @@ export default function VocabularyPage() {
         </p>
       </div>
 
-      <div className="flex flex-col gap-3 mb-6">
-        <div className="flex gap-2">
-          <div className="relative flex-1 max-w-sm">
-            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-              placeholder={t("searchVocab")}
-              className="w-full pl-9 pr-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--surface)] text-gray-200 placeholder-gray-600 focus:border-amber-500/50 focus:outline-none text-sm"
-            />
-          </div>
-          <div className="flex rounded-lg border border-[var(--border)] overflow-hidden">
-            <button onClick={() => setView("table")} className={cn("px-3 py-2 text-sm transition-colors", view === "table" ? "bg-amber-500/10 text-amber-400" : "text-gray-400 hover:text-gray-200")}><List size={16} /></button>
-            <button onClick={() => setView("card")} className={cn("px-3 py-2 text-sm transition-colors", view === "card" ? "bg-amber-500/10 text-amber-400" : "text-gray-400 hover:text-gray-200")}><Grid size={16} /></button>
-          </div>
+      <div className="flex flex-col lg:flex-row lg:flex-wrap lg:items-center gap-2 mb-6">
+        <div className="relative flex-1 lg:flex-initial lg:w-72">
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+            placeholder={t("searchVocab")}
+            className="w-full pl-9 pr-3 h-10 rounded-lg border border-[var(--border)] bg-[var(--surface)] text-gray-200 placeholder-gray-600 focus:border-amber-500/50 focus:outline-none text-sm"
+          />
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          <div className="flex rounded-lg border border-[var(--border)] overflow-hidden text-sm">
-            {LEVELS.map((l) => (
+        <div className="flex h-10 rounded-lg border border-[var(--border)] overflow-hidden text-sm">
+          {LEVELS.map((l) => {
+            const wip = l === "A2" || l === "B1";
+            return (
               <button
                 key={l}
                 onClick={() => { setLevel(l); setPage(1); }}
-                className={cn("px-3 py-1.5 transition-colors", level === l ? "bg-amber-500/10 text-amber-400" : "text-gray-400 hover:text-gray-200")}
+                title={wip ? "Coming soon — no content yet at this level" : undefined}
+                className={cn(
+                  "relative px-3 transition-colors",
+                  level === l ? "bg-amber-500/10 text-amber-400" : "text-gray-400 hover:text-gray-200",
+                )}
               >
                 {l === "All" ? t("all") : l}
+                {wip && <span aria-hidden className="absolute top-1 right-1 w-2 h-2 rounded-full bg-amber-500 ring-2 ring-[var(--background)]" />}
               </button>
-            ))}
-          </div>
+            );
+          })}
+        </div>
 
-          <select
-            value={topic}
-            onChange={(e) => { setTopic(e.target.value); setPage(1); }}
-            className="px-3 py-1.5 rounded-lg border border-[var(--border)] bg-[var(--surface)] text-gray-300 text-sm focus:border-amber-500/50 focus:outline-none"
-          >
-            <option value="all">{t("all")} ({t("topic")})</option>
-            {TOPICS.map((tp) => <option key={tp} value={tp}>{tp}</option>)}
-          </select>
+        <select
+          value={topic}
+          onChange={(e) => { setTopic(e.target.value); setPage(1); }}
+          className="h-10 px-3 rounded-lg border border-[var(--border)] bg-[var(--surface)] text-gray-300 text-sm focus:border-amber-500/50 focus:outline-none lg:min-w-44"
+        >
+          <option value="all">{t("all")} ({t("topic")})</option>
+          {TOPICS.map((tp) => <option key={tp} value={tp}>{tp}</option>)}
+        </select>
 
-          <select
-            value={pos}
-            onChange={(e) => { setPos(e.target.value); setPage(1); }}
-            className="px-3 py-1.5 rounded-lg border border-[var(--border)] bg-[var(--surface)] text-gray-300 text-sm focus:border-amber-500/50 focus:outline-none"
-          >
-            <option value="all">{t("all")} ({t("partOfSpeech")})</option>
-            {PARTS_OF_SPEECH.map((p) => <option key={p} value={p}>{getPosLabel(p)}</option>)}
-          </select>
+        <select
+          value={pos}
+          onChange={(e) => { setPos(e.target.value); setPage(1); }}
+          className="h-10 px-3 rounded-lg border border-[var(--border)] bg-[var(--surface)] text-gray-300 text-sm focus:border-amber-500/50 focus:outline-none lg:min-w-44"
+        >
+          <option value="all">{t("all")} ({t("partOfSpeech")})</option>
+          {PARTS_OF_SPEECH.map((p) => <option key={p} value={p}>{getPosLabel(p)}</option>)}
+        </select>
+
+        <div className="flex h-10 rounded-lg border border-[var(--border)] overflow-hidden lg:ml-auto">
+          <button onClick={() => setView("table")} aria-label="Table view" className={cn("px-3 text-sm transition-colors", view === "table" ? "bg-amber-500/10 text-amber-400" : "text-gray-400 hover:text-gray-200")}><List size={16} /></button>
+          <button onClick={() => setView("card")} aria-label="Card view" className={cn("px-3 text-sm transition-colors", view === "card" ? "bg-amber-500/10 text-amber-400" : "text-gray-400 hover:text-gray-200")}><Grid size={16} /></button>
         </div>
       </div>
 
@@ -362,6 +367,11 @@ export default function VocabularyPage() {
           {filtered.length === 0 && (
             <div className="py-12 text-center">
               <p className="text-gray-400">{t("noResults")}</p>
+              {(level === "A2" || level === "B1") && (
+                <p className="text-xs text-gray-500 mt-2">
+                  {level} content is coming soon. We&apos;re focusing on perfecting A1 first — switch to A1 to browse all 220 words.
+                </p>
+              )}
             </div>
           )}
         </div>
@@ -383,6 +393,11 @@ export default function VocabularyPage() {
           {filtered.length === 0 && (
             <div className="col-span-3 py-12 text-center">
               <p className="text-gray-400">{t("noResults")}</p>
+              {(level === "A2" || level === "B1") && (
+                <p className="text-xs text-gray-500 mt-2">
+                  {level} content is coming soon. We&apos;re focusing on perfecting A1 first — switch to A1 to browse all 220 words.
+                </p>
+              )}
             </div>
           )}
         </div>

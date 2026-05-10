@@ -16,12 +16,27 @@ const EXAM_SECTIONS: { id: string; icon: string; lt: string; titleKey: Translati
   { id: "mock",       icon: "📋", lt: "Bandomasis egzaminas", titleKey: "mockExam",  desc: { en: "Take a full timed mock exam, just like the real test.", bn: "আসল পরীক্ষার মতো সম্পূর্ণ অনুশীলন করুন সময়সীমাসহ", az: "Real test kimi tam vaxtlı sınaq imtahanı verin.", hi: "वास्तविक परीक्षा की तरह पूरा समयबद्ध मॉक परीक्षा दें।", ky: "Реалдуу сынак сыяктуу толук убакыт менен мок сынак тапшырыңыз.", tg: "Имтиҳони омӯзишии пурраи бо вақт диҳед.", uz: "Haqiqiy testdek toʻliq vaqt bilan sinov imtihonini topshiring." }, href: "/exam-prep/mock-exam", color: "text-emerald-400 border-emerald-500/20 bg-emerald-500/10" },
 ];
 
-const EXAM_FACTS: { labelKey: TranslationKey; value: string; note: Multi }[] = [
-  { labelKey: "examFee",   value: "€52",  note: { en: "(2026)",       bn: "(২০২৬)",      az: "(2026)",        hi: "(2026)",        ky: "(2026)",         tg: "(2026)",         uz: "(2026)" } },
-  { labelKey: "examPass",  value: "50%",  note: { en: "overall",      bn: "সামগ্রিক",   az: "ümumi",          hi: "कुल",            ky: "жалпы",          tg: "умумӣ",           uz: "umumiy" } },
-  // minimum per section
-  { labelKey: "examPass",  value: "25%",  note: { en: "min. per section", bn: "প্রতিটি অংশে ন্যূনতম", az: "hər bölmədə minimum", hi: "प्रत्येक अनुभाग में न्यूनतम", ky: "ар бир бөлүмдө минимум", tg: "ҳадди ақал дар ҳар бахш", uz: "har bir boʻlimda kamida" } },
-  { labelKey: "examFee",   value: "~2.5", note: { en: "hours total",  bn: "ঘন্টা",       az: "saat",           hi: "घंटे",            ky: "саат",           tg: "соат",            uz: "soat" } },
+const EXAM_FACTS: { label: Multi; value: string; note: Multi }[] = [
+  {
+    value: "€52",
+    label: { en: "Fee",      bn: "ফি",       az: "Ödəniş",  hi: "शुल्क",   ky: "Төлөм",   tg: "Пардохт", uz: "Toʻlov" },
+    note:  { en: "(2026)",   bn: "(২০২৬)",  az: "(2026)",  hi: "(2026)",  ky: "(2026)",  tg: "(2026)",   uz: "(2026)" },
+  },
+  {
+    value: "50%",
+    label: { en: "Pass mark", bn: "উত্তীর্ণ", az: "Keçid balı", hi: "पास अंक", ky: "Өтүү упайы", tg: "Ҳадди гузар", uz: "Oʻtish bali" },
+    note:  { en: "overall",   bn: "সামগ্রিক", az: "ümumi",      hi: "कुल",      ky: "жалпы",       tg: "умумӣ",       uz: "umumiy" },
+  },
+  {
+    value: "25%",
+    label: { en: "Pass mark", bn: "উত্তীর্ণ", az: "Keçid balı", hi: "पास अंक", ky: "Өтүү упайы", tg: "Ҳадди гузар", uz: "Oʻtish bali" },
+    note:  { en: "min. per section", bn: "প্রতিটি অংশে ন্যূনতম", az: "hər bölmədə minimum", hi: "प्रत्येक अनुभाग में न्यूनतम", ky: "ар бир бөлүмдө минимум", tg: "ҳадди ақал дар ҳар бахш", uz: "har bir boʻlimda kamida" },
+  },
+  {
+    value: "~2.5 h",
+    label: { en: "Duration", bn: "সময়কাল", az: "Müddət", hi: "अवधि",  ky: "Узактык", tg: "Давомнокӣ", uz: "Davomiyligi" },
+    note:  { en: "total",    bn: "মোট",     az: "ümumi",  hi: "कुल",    ky: "жалпы",   tg: "ҳамагӣ",     uz: "jami" },
+  },
 ];
 
 export default function ExamPrepPage() {
@@ -50,7 +65,7 @@ export default function ExamPrepPage() {
             <div key={i} className="rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-sm p-4 sm:p-5 text-center hover:border-amber-500/30 hover:bg-white/[0.05] transition-all">
               <p className="text-2xl sm:text-3xl font-extrabold text-amber-400">{f.value}</p>
               <p className="text-[11px] text-gray-500 mt-0.5">{f.note[lang] ?? f.note.en}</p>
-              <p className="text-xs text-gray-300 mt-1.5 font-medium">{t(f.labelKey)}</p>
+              <p className="text-xs text-gray-300 mt-1.5 font-medium">{f.label[lang] ?? f.label.en}</p>
             </div>
           ))}
         </div>

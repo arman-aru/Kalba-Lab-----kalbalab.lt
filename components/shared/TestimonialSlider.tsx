@@ -13,11 +13,15 @@ type Review = {
 };
 
 const AUTOPLAY_MS = 6000;
+// Trigger Read more / Read less only when the review is long enough that the
+// line clamp would actually hide content on a typical phone width.
+const READ_MORE_THRESHOLD = 180;
 
 export function TestimonialSlider({ fallback = [] as Review[] }: { fallback?: Review[] }) {
   const [reviews, setReviews] = useState<Review[]>(fallback);
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   // Fetch approved reviews on mount.
   useEffect(() => {
@@ -35,12 +39,15 @@ export function TestimonialSlider({ fallback = [] as Review[] }: { fallback?: Re
     return () => { cancelled = true; };
   }, []);
 
-  // Autoplay
+  // Autoplay — also paused while a review is expanded so the user can finish reading.
   useEffect(() => {
-    if (paused || reviews.length < 2) return;
+    if (paused || expandedId !== null || reviews.length < 2) return;
     const id = setInterval(() => setIndex((i) => (i + 1) % reviews.length), AUTOPLAY_MS);
     return () => clearInterval(id);
-  }, [paused, reviews.length]);
+  }, [paused, reviews.length, expandedId]);
+
+  // Collapse any expanded review when the slide changes so users see fresh content.
+  useEffect(() => { setExpandedId(null); }, [index]);
 
   if (!reviews.length) {
     return (
@@ -66,12 +73,18 @@ export function TestimonialSlider({ fallback = [] as Review[] }: { fallback?: Re
 
         <Quote size={32} className="text-amber-400/50 mb-4" />
 
-        {/* Slides — only one visible at a time, cross-fade between */}
+        {/* Slides — only the active one is in normal flow so the wrapper height
+            can grow when a long review is expanded on mobile. Inactive slides
+            stay absolute so they don't take vertical space. */}
         <div className="relative min-h-[180px]">
           {reviews.map((r, i) => (
             <div
               key={r.id}
-              className={`absolute inset-0 transition-all duration-500 ${i === index ? "opacity-100 translate-x-0" : "opacity-0 pointer-events-none translate-x-2"}`}
+              className={`transition-opacity duration-500 ${
+                i === index
+                  ? "relative opacity-100"
+                  : "absolute inset-0 opacity-0 pointer-events-none"
+              }`}
               aria-hidden={i !== index}
             >
               <div className="flex items-center gap-1 mb-3">
@@ -79,9 +92,32 @@ export function TestimonialSlider({ fallback = [] as Review[] }: { fallback?: Re
                   <Star key={j} size={16} className={j < r.rating ? "fill-amber-300 text-amber-300" : "text-gray-700"} />
                 ))}
               </div>
-              <p className="text-base md:text-lg text-gray-100 leading-relaxed mb-5 max-w-3xl">
-                &ldquo;{r.feedback}&rdquo;
-              </p>
+              {(() => {
+                const isLong = r.feedback.length > READ_MORE_THRESHOLD;
+                const isExpanded = expandedId === r.id;
+                return (
+                  <>
+                    <p
+                      className={`text-base md:text-lg text-gray-100 leading-relaxed mb-3 max-w-3xl ${
+                        isLong && !isExpanded ? "line-clamp-5 md:line-clamp-none" : ""
+                      }`}
+                    >
+                      &ldquo;{r.feedback}&rdquo;
+                    </p>
+                    {isLong && (
+                      <button
+                        type="button"
+                        onClick={() => setExpandedId(isExpanded ? null : r.id)}
+                        className="md:hidden mb-4 text-amber-300 hover:text-amber-200 text-sm font-semibold transition-colors"
+                        aria-expanded={isExpanded}
+                      >
+                        {isExpanded ? "Show less" : "Read more"}
+                      </button>
+                    )}
+                    {!isLong && <div className="mb-2" />}
+                  </>
+                );
+              })()}
               <div className="flex items-center gap-3">
                 <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-amber-500/20 ring-1 ring-amber-500/40 text-amber-300 font-bold">
                   {r.name?.[0]?.toUpperCase() ?? "?"}

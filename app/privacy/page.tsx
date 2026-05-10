@@ -1,15 +1,40 @@
-import type { Metadata } from "next";
 import { InfoPageShell, ContentCard } from "@/components/ui/InfoPageShell";
+import { SEO } from "@/components/seo/SEO";
+import { buildMetadata } from "@/lib/seo/metadata";
+import { breadcrumbLd } from "@/lib/seo/jsonld";
+import { SITE, abs } from "@/lib/seo/site";
 
-export const metadata: Metadata = {
+export const metadata = buildMetadata({
   title: "Privacy Policy",
-  description: "How KalbaLab handles your personal data, learning progress, and the few third-party services we use.",
-};
+  description:
+    "How KalbaLab handles your personal data, learning progress, and the few third-party services we use. We collect the minimum we need to make the platform work.",
+  path: "/privacy",
+});
 
 const LAST_UPDATED = "2026-05-08";
 
+const PRIVACY_LD = {
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "@id": abs("/privacy"),
+  url: abs("/privacy"),
+  name: "Privacy Policy",
+  inLanguage: "en",
+  isPartOf: { "@id": `${SITE.url}#website` },
+  dateModified: LAST_UPDATED,
+  about: { "@id": `${SITE.url}#organization` },
+};
+
 export default function PrivacyPage() {
   return (
+    <>
+      <SEO blocks={[
+        PRIVACY_LD,
+        breadcrumbLd([
+          { name: "Home", url: SITE.url },
+          { name: "Privacy", url: abs("/privacy") },
+        ]),
+      ]} />
     <InfoPageShell
       eyebrow="Privacy"
       title="Privacy Policy"
@@ -106,5 +131,6 @@ export default function PrivacyPage() {
         </div>
       </ContentCard>
     </InfoPageShell>
+    </>
   );
 }

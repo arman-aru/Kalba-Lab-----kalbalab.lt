@@ -1,15 +1,39 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, Heart, Globe2, Sparkles } from "lucide-react";
 import { InfoPageShell, ContentCard } from "@/components/ui/InfoPageShell";
+import { SEO } from "@/components/seo/SEO";
+import { buildMetadata } from "@/lib/seo/metadata";
+import { breadcrumbLd } from "@/lib/seo/jsonld";
+import { SITE, abs } from "@/lib/seo/site";
 
-export const metadata: Metadata = {
-  title: "About",
-  description: "About KalbaLab — a free Lithuanian language learning platform built for international communities living in Lithuania.",
+export const metadata = buildMetadata({
+  title: "About KalbaLab",
+  description:
+    "KalbaLab is a free Lithuanian language learning platform built for the international community in Lithuania — A1 vocabulary, native audio, multilingual explanations, and full integration-exam preparation.",
+  path: "/about",
+});
+
+const ABOUT_LD = {
+  "@context": "https://schema.org",
+  "@type": "AboutPage",
+  url: abs("/about"),
+  name: "About KalbaLab",
+  inLanguage: "en",
+  isPartOf: { "@id": `${SITE.url}#website` },
+  about: { "@id": `${SITE.url}#organization` },
+  primaryImageOfPage: abs("/favicon_io/android-chrome-512x512.png"),
 };
 
 export default function AboutPage() {
   return (
+    <>
+      <SEO blocks={[
+        ABOUT_LD,
+        breadcrumbLd([
+          { name: "Home", url: SITE.url },
+          { name: "About", url: abs("/about") },
+        ]),
+      ]} />
     <InfoPageShell
       eyebrow="About"
       title="Built for the international community in Lithuania"
@@ -79,5 +103,6 @@ export default function AboutPage() {
         </div>
       </div>
     </InfoPageShell>
+    </>
   );
 }

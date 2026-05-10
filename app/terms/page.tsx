@@ -1,15 +1,39 @@
-import type { Metadata } from "next";
 import { InfoPageShell, ContentCard } from "@/components/ui/InfoPageShell";
+import { SEO } from "@/components/seo/SEO";
+import { buildMetadata } from "@/lib/seo/metadata";
+import { breadcrumbLd } from "@/lib/seo/jsonld";
+import { SITE, abs } from "@/lib/seo/site";
 
-export const metadata: Metadata = {
+export const metadata = buildMetadata({
   title: "Terms of Use",
-  description: "The rules for using KalbaLab — short, fair, and written in plain English.",
-};
+  description:
+    "The rules for using KalbaLab — short, fair, and written in plain English. By using the platform you agree to these terms.",
+  path: "/terms",
+});
 
 const LAST_UPDATED = "2026-05-08";
 
+const TERMS_LD = {
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "@id": abs("/terms"),
+  url: abs("/terms"),
+  name: "Terms of Use",
+  inLanguage: "en",
+  isPartOf: { "@id": `${SITE.url}#website` },
+  dateModified: LAST_UPDATED,
+};
+
 export default function TermsPage() {
   return (
+    <>
+      <SEO blocks={[
+        TERMS_LD,
+        breadcrumbLd([
+          { name: "Home", url: SITE.url },
+          { name: "Terms", url: abs("/terms") },
+        ]),
+      ]} />
     <InfoPageShell
       eyebrow="Legal"
       title="Terms of Use"
@@ -124,5 +148,6 @@ export default function TermsPage() {
         </div>
       </ContentCard>
     </InfoPageShell>
+    </>
   );
 }

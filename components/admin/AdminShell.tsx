@@ -4,13 +4,14 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, type ReactNode } from "react";
 import {
-  LayoutDashboard, Users, Mail, Inbox, Trophy, LogOut, Menu, X, ShieldCheck, Star,
+  LayoutDashboard, Users, Mail, Inbox, Trophy, LogOut, Menu, X, ShieldCheck, Star, FileText,
 } from "lucide-react";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
 import { cn } from "@/lib/utils";
 
 const NAV = [
   { href: "/admin",            label: "Overview",    icon: LayoutDashboard },
+  { href: "/admin/blog",       label: "Blog",        icon: FileText },
   { href: "/admin/users",      label: "Users",       icon: Users },
   { href: "/admin/messages",   label: "Messages",    icon: Inbox },
   { href: "/admin/reviews",    label: "Reviews",     icon: Star },

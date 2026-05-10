@@ -6,6 +6,7 @@
 
 import { MsEdgeTTS, OUTPUT_FORMAT } from "msedge-tts";
 import { getVoice } from "@/lib/voices";
+import { getClientIp, rateLimit, sameOriginOk } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 
@@ -72,6 +73,20 @@ async function legacyTranslateTTS(text: string): Promise<Response> {
 }
 
 export async function GET(req: Request) {
+  // TTS is expensive and called frequently — cap per-IP to deter scraping
+  // and protect the upstream Azure / Google translate endpoints.
+  if (!sameOriginOk(req)) {
+    return new Response("Forbidden", { status: 403 });
+  }
+  const ip = getClientIp(req);
+  const rl = rateLimit(`tts:${ip}`, 200, 60 * 60 * 1000); // 200/hour per IP
+  if (!rl.ok) {
+    return new Response("Too many requests", {
+      status: 429,
+      headers: { "Retry-After": "60" },
+    });
+  }
+
   const url = new URL(req.url);
   const raw = url.searchParams.get("text")?.trim();
   const slow = url.searchParams.get("slow") === "1";

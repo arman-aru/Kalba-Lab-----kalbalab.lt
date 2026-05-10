@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 
 interface ExamTimerBarProps {
@@ -12,14 +12,21 @@ interface ExamTimerBarProps {
 export function ExamTimerBar({ totalSeconds, onExpire, className }: ExamTimerBarProps) {
   const [remaining, setRemaining] = useState(totalSeconds);
 
+  // Hold onExpire in a ref so unstable inline arrows from the parent don't
+  // re-trigger the tick effect. Otherwise frequent parent re-renders (e.g. a
+  // textarea keystroke during the writing phase) would reschedule the
+  // 1-second timeout indefinitely and the clock would never advance.
+  const onExpireRef = useRef(onExpire);
+  useEffect(() => { onExpireRef.current = onExpire; }, [onExpire]);
+
   useEffect(() => {
     if (remaining <= 0) {
-      onExpire?.();
+      onExpireRef.current?.();
       return;
     }
     const t = setTimeout(() => setRemaining((r) => r - 1), 1000);
     return () => clearTimeout(t);
-  }, [remaining, onExpire]);
+  }, [remaining]);
 
   const pct = (remaining / totalSeconds) * 100;
   const mins = Math.floor(remaining / 60);
