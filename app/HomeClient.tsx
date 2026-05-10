@@ -64,15 +64,30 @@ export default function HomeClient({
 
   useEffect(() => {
     let cancelled = false;
-    fetch("/api/stats")
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data) => {
-        if (!cancelled && data && typeof data.learners === "number") {
-          setLearners(data.learners);
-        }
-      })
-      .catch(() => {});
-    return () => { cancelled = true; };
+    const load = () =>
+      fetch("/api/stats", { cache: "no-store" })
+        .then((r) => (r.ok ? r.json() : null))
+        .then((data) => {
+          if (!cancelled && data && typeof data.learners === "number") {
+            setLearners(data.learners);
+          }
+        })
+        .catch(() => {});
+
+    load();
+    // Re-fetch every 20 s while the tab is open so a new signup appears in
+    // near-real-time. Pause when the tab is hidden to save bandwidth.
+    const id = setInterval(() => {
+      if (!document.hidden) load();
+    }, 20_000);
+    const onVisible = () => { if (!document.hidden) load(); };
+    document.addEventListener("visibilitychange", onVisible);
+
+    return () => {
+      cancelled = true;
+      clearInterval(id);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
   }, []);
 
   const stats = [

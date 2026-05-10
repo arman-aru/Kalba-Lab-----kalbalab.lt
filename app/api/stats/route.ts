@@ -30,7 +30,11 @@ export async function GET() {
       { learners: count ?? 0 },
       {
         headers: {
-          "Cache-Control": "public, s-maxage=300, stale-while-revalidate=3600",
+          // Short edge cache so a new signup shows up on the home page
+          // within ~10 seconds. Browsers don't cache, so client polling is
+          // honest. SWR allows the next visitor in the window to get a near-
+          // instant response while we refresh in the background.
+          "Cache-Control": "public, max-age=0, s-maxage=10, stale-while-revalidate=30",
         },
       }
     );

@@ -63,9 +63,11 @@ export function Navbar() {
     try {
       await getSupabaseBrowser().auth.signOut();
       setUserMenuOpen(false);
-      router.push("/");
-      router.refresh();
-    } finally {
+      // Hard redirect so the user never lands on a transient render of the
+      // protected page they just signed out of (which otherwise flashes a
+      // "Loading…" state while React unwinds and middleware redirects).
+      window.location.replace("/");
+    } catch {
       setSigningOut(false);
     }
   };
@@ -244,20 +246,23 @@ export function Navbar() {
                       </Link>
                     </div>
 
-                    {/* Mobile-only main nav (mirrors the desktop top-bar links) */}
-                    <div className="md:hidden border-t border-white/10 py-1">
-                      <p className="px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-gray-500">Navigate</p>
-                      {NAV_LINKS.map((link) => (
-                        <Link
-                          key={`mob-${link.href}`}
-                          href={link.href}
-                          onClick={() => setUserMenuOpen(false)}
-                          className="flex items-center gap-2.5 px-3 py-2 text-sm text-gray-300 hover:text-amber-300 hover:bg-white/5 transition-colors"
-                        >
-                          <link.icon size={14} />
-                          {tr(link.key)}
-                        </Link>
-                      ))}
+                    {/* Mobile-only main nav — 2-column grid keeps the dropdown
+                        compact so it doesn't run off the bottom of small phones. */}
+                    <div className="md:hidden border-t border-white/10 px-2 py-2">
+                      <p className="px-1 pb-1.5 text-[10px] font-semibold uppercase tracking-wider text-gray-500">Navigate</p>
+                      <div className="grid grid-cols-2 gap-1">
+                        {NAV_LINKS.map((link) => (
+                          <Link
+                            key={`mob-${link.href}`}
+                            href={link.href}
+                            onClick={() => setUserMenuOpen(false)}
+                            className="flex items-center gap-2 px-2.5 py-2 rounded-lg text-sm text-gray-300 hover:text-amber-300 hover:bg-white/5 transition-colors"
+                          >
+                            <link.icon size={14} className="shrink-0" />
+                            <span className="truncate">{tr(link.key)}</span>
+                          </Link>
+                        ))}
+                      </div>
                     </div>
 
                     {/* Settings link */}
@@ -272,20 +277,28 @@ export function Navbar() {
                       </Link>
                     </div>
 
-                    {/* Footer / static pages */}
-                    <div className="border-t border-white/10 py-1">
-                      <p className="px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-gray-500">More</p>
-                      {FOOTER_LINKS.map((link) => (
-                        <Link
-                          key={`menu-${link.href}`}
-                          href={link.href}
-                          onClick={() => setUserMenuOpen(false)}
-                          className="flex items-center gap-2.5 px-3 py-2 text-sm text-gray-300 hover:text-amber-300 hover:bg-white/5 transition-colors"
-                        >
-                          <link.icon size={14} />
-                          {link.label}
-                        </Link>
-                      ))}
+                    {/* Footer / static pages — collapsible on mobile so the
+                        dropdown stays short; 2-column grid when expanded. */}
+                    <div className="border-t border-white/10">
+                      <details className="group md:open:!block" open>
+                        <summary className="flex items-center justify-between px-3 py-2 cursor-pointer list-none md:cursor-default">
+                          <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-500">More</span>
+                          <span className="md:hidden text-gray-500 group-open:rotate-180 transition-transform">▾</span>
+                        </summary>
+                        <div className="px-2 pb-2 grid grid-cols-2 md:grid-cols-1 gap-1">
+                          {FOOTER_LINKS.map((link) => (
+                            <Link
+                              key={`menu-${link.href}`}
+                              href={link.href}
+                              onClick={() => setUserMenuOpen(false)}
+                              className="flex items-center gap-2 px-2.5 py-2 rounded-lg md:rounded-none text-sm text-gray-300 hover:text-amber-300 hover:bg-white/5 transition-colors"
+                            >
+                              <link.icon size={14} className="shrink-0" />
+                              <span className="truncate">{link.label}</span>
+                            </Link>
+                          ))}
+                        </div>
+                      </details>
                     </div>
 
                     {/* Admin shortcut */}

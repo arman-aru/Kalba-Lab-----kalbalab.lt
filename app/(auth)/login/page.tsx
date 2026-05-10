@@ -33,8 +33,12 @@ export default function LoginPage() {
         password,
       });
       if (e) throw e;
-      router.replace("/profile");
-      router.refresh();
+      // Hard navigation so the freshly-set Supabase auth cookie is sent on
+      // the very next request — avoids the race where the middleware reads
+      // the request before the cookie is attached and redirects back to /login.
+      const next = new URLSearchParams(window.location.search).get("next");
+      window.location.replace(next && next.startsWith("/") ? next : "/profile");
+      return;
     } catch (err) {
       setError(err instanceof Error ? err.message : t("loginFailed"));
     } finally {

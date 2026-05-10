@@ -50,8 +50,11 @@ export default function RegisterPage() {
       if (data.user) {
         await sb.from("profiles").update({ full_name: name }).eq("id", data.user.id);
       }
-      router.replace("/profile");
-      router.refresh();
+      // Hard navigation so the freshly-set Supabase auth cookie is included
+      // in the very next request — otherwise middleware can race the cookie
+      // and bounce a brand-new user back to /login after register.
+      window.location.replace("/profile");
+      return;
     } catch (err) {
       setError(err instanceof Error ? err.message : t("registerFailed"));
     } finally {
