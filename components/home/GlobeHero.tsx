@@ -1,23 +1,21 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { useEffect, useRef, useState } from "react";
 import { AudioButton } from "@/components/audio/AudioButton";
 
-// The 3D globe imports three / @react-three/fiber / drei (~200 KB gzipped).
-// Loading it eagerly would block first paint on the home page, so we lazy-
-// load it client-side only and show a static fallback until the chunk lands.
+// The 3D globe pulls in three / @react-three/fiber / drei (~200 KB gzipped)
+// and runs a heavy init loop. To protect Lighthouse / Core Web Vitals we:
+//   1. Lazy-load it (SSR off so it doesn't run during pre-render).
+//   2. Only mount it AFTER first paint AND when the slot is on-screen.
+//   3. Wait for `requestIdleCallback` so we don't fight the page becoming
+//      interactive (this is what was driving the 14 s mobile TBT).
 const InteractiveGlobe = dynamic(() => import("./InteractiveGlobe"), {
   ssr: false,
-  loading: () => (
-    <div className="absolute inset-0 grid place-items-center">
-      <div className="h-3/5 w-3/5 rounded-full bg-radial-[ellipse] from-amber-500/15 via-amber-500/5 to-transparent animate-pulse" />
-    </div>
-  ),
+  loading: () => null,
 });
 
 const BUBBLES: { lt: string; en: string; pos: string }[] = [
-  // Positions are tuned to sit in each corner of the globe's square frame
-  // without overlapping the sphere itself.
   { lt: "Ačiū!",              en: "Thank you!",            pos: "top-2 left-1 sm:top-4 sm:left-2" },
   { lt: "Labas!",             en: "Hello!",                pos: "top-2 right-1 sm:top-4 sm:right-2" },
   { lt: "Kur yra stotis?",    en: "Where is the station?", pos: "bottom-2 left-1 sm:bottom-6 sm:left-2" },
@@ -25,14 +23,54 @@ const BUBBLES: { lt: string; en: string; pos: string }[] = [
 ];
 
 export function GlobeHero() {
+  const slotRef = useRef<HTMLDivElement>(null);
+  const [shouldMount, setShouldMount] = useState(false);
+
+  useEffect(() => {
+    if (!slotRef.current) return;
+    let cancelled = false;
+    let idleHandle: number | null = null;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (cancelled || !entries[0]?.isIntersecting) return;
+        observer.disconnect();
+        // Wait until the browser is idle so we don't fight Time-To-Interactive.
+        const ric =
+          typeof window.requestIdleCallback === "function"
+            ? window.requestIdleCallback
+            : (cb: () => void) => window.setTimeout(cb, 800);
+        idleHandle = ric(() => { if (!cancelled) setShouldMount(true); }) as number;
+      },
+      { rootMargin: "200px" },
+    );
+    observer.observe(slotRef.current);
+
+    return () => {
+      cancelled = true;
+      observer.disconnect();
+      if (idleHandle !== null && typeof window.cancelIdleCallback === "function") {
+        try { window.cancelIdleCallback(idleHandle); } catch { /* noop */ }
+      }
+    };
+  }, []);
+
   return (
-    <div className="relative w-full max-w-xl mx-auto aspect-square">
-      {/* The interactive globe fills the square */}
-      <div className="absolute inset-0">
-        <InteractiveGlobe />
+    <div ref={slotRef} className="relative w-full max-w-xl mx-auto aspect-square">
+      {/* Reserved slot — keeps layout stable whether or not the globe mounts. */}
+      <div className="absolute inset-0 grid place-items-center">
+        {shouldMount ? (
+          <div className="absolute inset-0">
+            <InteractiveGlobe />
+          </div>
+        ) : (
+          // Cheap CSS placeholder so there's something to look at while the
+          // user is reading the headline. Zero JS, no layout shift, no TBT.
+          <div className="h-3/4 w-3/4 rounded-full bg-radial from-amber-500/15 via-amber-500/5 to-transparent" />
+        )}
       </div>
 
-      {/* Bubble overlays — HTML for crisp text rather than rendered in 3D */}
+      {/* Speech bubble overlays — HTML, render immediately, no 3D dependency. */}
       {BUBBLES.map((b) => (
         <div
           key={b.lt}
@@ -47,7 +85,6 @@ export function GlobeHero() {
           </div>
         </div>
       ))}
-
     </div>
   );
 }

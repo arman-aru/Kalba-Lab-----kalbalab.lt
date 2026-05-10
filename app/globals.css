@@ -32,8 +32,10 @@
   --color-amber-accent: var(--accent-amber);
   --color-green-accent: var(--accent-green);
   --color-purple-accent: var(--accent-purple);
-  --font-sans: 'Poppins', system-ui, -apple-system, sans-serif;
-  --font-bengali: 'Noto Sans Bengali', sans-serif;
+  /* Fonts now come from next/font (see app/layout.tsx). The `--font-sans`
+     and `--font-bengali` variables resolve to next/font's hashed family
+     names with optional fallback metrics that keep CLS at 0 during swap. */
+  --font-sans-fallback: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 
 * {
@@ -47,32 +49,32 @@ html {
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: 'Poppins', system-ui, -apple-system, sans-serif;
+  font-family: var(--font-sans), var(--font-sans-fallback);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 .font-bengali {
-  font-family: 'Noto Sans Bengali', sans-serif;
+  font-family: var(--font-bengali), var(--font-sans), var(--font-sans-fallback);
 }
 
 /* Lithuanian text — amber bold */
 .lt-text {
   color: #F59E0B;
   font-weight: 700;
-  font-family: 'Poppins', sans-serif;
+  font-family: var(--font-sans), var(--font-sans-fallback);
 }
 
 /* English text */
 .en-text {
   color: #9CA3AF;
-  font-family: 'Poppins', sans-serif;
+  font-family: var(--font-sans), var(--font-sans-fallback);
 }
 
-/* Bengali text — emerald green, Noto Sans Bengali */
+/* Bengali text — emerald green */
 .bn-text {
   color: #10B981;
-  font-family: 'Noto Sans Bengali', sans-serif;
+  font-family: var(--font-bengali), var(--font-sans), var(--font-sans-fallback);
 }
 
 /* Card surface */
@@ -161,7 +163,7 @@ body {
 
 /* Prose / content area */
 .prose-lt h1, .prose-lt h2, .prose-lt h3 {
-  font-family: 'Poppins', sans-serif;
+  font-family: var(--font-sans), var(--font-sans-fallback);
   color: var(--foreground);
 }
 

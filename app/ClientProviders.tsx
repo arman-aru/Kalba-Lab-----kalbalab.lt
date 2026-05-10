@@ -24,17 +24,35 @@ export function ClientProviders({ children }: { children: React.ReactNode }) {
     document.documentElement.dir = isRTL(uiLanguage) ? "rtl" : "ltr";
   }, [uiLanguage]);
 
-  // Register the PWA service worker once the app is interactive.
+  // Register the PWA service worker only after the page is fully idle.
+  // This protects Time-To-Interactive — registering during/just after load
+  // pulls main-thread time we need for hydration and the globe init loop.
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (!("serviceWorker" in navigator)) return;
     if (window.location.protocol === "http:" && window.location.hostname !== "localhost") return;
-    const onLoad = () => {
+
+    const register = () => {
       navigator.serviceWorker.register("/sw.js").catch(() => { /* non-fatal */ });
+    };
+
+    const ric: (cb: () => void) => number =
+      typeof window.requestIdleCallback === "function"
+        ? (cb) => window.requestIdleCallback(cb, { timeout: 4000 })
+        : (cb) => window.setTimeout(cb, 2000);
+
+    let handle: number | null = null;
+    const onLoad = () => {
+      handle = ric(register);
     };
     if (document.readyState === "complete") onLoad();
     else window.addEventListener("load", onLoad, { once: true });
-    return () => window.removeEventListener("load", onLoad);
+    return () => {
+      window.removeEventListener("load", onLoad);
+      if (handle !== null && typeof window.cancelIdleCallback === "function") {
+        try { window.cancelIdleCallback(handle); } catch { /* noop */ }
+      }
+    };
   }, []);
 
   return (

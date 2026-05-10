@@ -162,7 +162,7 @@ export default function HomeClient({
               <div className="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-400 mb-2">
                 <s.icon size={18} />
               </div>
-              <p className="text-2xl md:text-3xl font-extrabold text-gray-100">{s.value}</p>
+              <p className="text-2xl md:text-3xl font-extrabold text-gray-100 tabular-nums">{s.value}</p>
               <p className="text-xs md:text-sm text-gray-500 mt-0.5">{t(s.key)}</p>
             </div>
           ))}

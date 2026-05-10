@@ -1,9 +1,34 @@
 import type { Metadata } from "next";
+import { Poppins, Noto_Sans_Bengali } from "next/font/google";
 import "./globals.css";
 import { ClientProviders } from "./ClientProviders";
 import { SEO } from "@/components/seo/SEO";
 import { organizationLd, websiteLd } from "@/lib/seo/jsonld";
 import { hreflangFor } from "@/lib/seo/site";
+
+// Self-hosted via next/font: zero render-blocking requests, automatic
+// font-display: swap with the right size-adjust to keep CLS at 0 for the
+// font swap. Replaces the `<link>` to fonts.googleapis.com that was
+// adding a synchronous round-trip to FCP on mobile.
+const poppins = Poppins({
+  subsets: ["latin", "latin-ext"],
+  weight: ["300", "400", "500", "600", "700", "800", "900"],
+  // Use the same variable name globals.css already references so existing
+  // `var(--font-sans)` rules pick up next/font's hashed family name.
+  variable: "--font-sans",
+  display: "swap",
+  preload: true,
+});
+
+const notoBengali = Noto_Sans_Bengali({
+  subsets: ["bengali"],
+  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-bengali",
+  display: "swap",
+  // Don't preload Bengali on every page — only the small fraction of users
+  // running the bn locale need it; the variable still applies on demand.
+  preload: false,
+});
 
 export const metadata: Metadata = {
   title: {
@@ -68,12 +93,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&family=Noto+Sans+Bengali:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-      </head>
+    <html lang="en" suppressHydrationWarning className={`${poppins.variable} ${notoBengali.variable}`}>
       <body suppressHydrationWarning>
         <SEO blocks={[organizationLd(), websiteLd()]} />
         <ClientProviders>{children}</ClientProviders>
