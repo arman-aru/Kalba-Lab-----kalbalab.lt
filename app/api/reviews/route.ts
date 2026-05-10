@@ -41,12 +41,14 @@ export async function POST(req: Request) {
 
   const { name, location, country, rating, feedback } = (body ?? {}) as Record<string, unknown>;
   const nameStr = String(name ?? "").trim().slice(0, 120);
-  const locStr  = location ? String(location).trim().slice(0, 120) : null;
-  const ctryStr = country  ? String(country).trim().slice(0, 80)  : null;
+  const locStr  = String(location ?? "").trim().slice(0, 120);
+  const ctryStr = String(country ?? "").trim().slice(0, 80);
   const fbStr   = String(feedback ?? "").trim().slice(0, 1500);
   const rt      = Math.round(Number(rating ?? 0));
 
   if (!nameStr) return Response.json({ error: "Name required" }, { status: 400 });
+  if (!locStr)  return Response.json({ error: "City required" }, { status: 400 });
+  if (!ctryStr) return Response.json({ error: "Home country required" }, { status: 400 });
   if (rt < 1 || rt > 5) return Response.json({ error: "Rating must be 1–5" }, { status: 400 });
   if (fbStr.length < 5) return Response.json({ error: "Feedback too short" }, { status: 400 });
 

@@ -8,6 +8,28 @@ import { awardXP } from "@/lib/award-xp";
 
 type Status = "pending" | "approved" | "rejected" | null;
 
+// Countries shown in the dropdown. Flag emoji + name; "Other" lets the user type freely.
+const COUNTRIES: { code: string; flag: string; name: string }[] = [
+  { code: "BD", flag: "🇧🇩", name: "Bangladesh" },
+  { code: "IN", flag: "🇮🇳", name: "India" },
+  { code: "PK", flag: "🇵🇰", name: "Pakistan" },
+  { code: "NP", flag: "🇳🇵", name: "Nepal" },
+  { code: "LK", flag: "🇱🇰", name: "Sri Lanka" },
+  { code: "PH", flag: "🇵🇭", name: "Philippines" },
+  { code: "UA", flag: "🇺🇦", name: "Ukraine" },
+  { code: "BY", flag: "🇧🇾", name: "Belarus" },
+  { code: "RU", flag: "🇷🇺", name: "Russia" },
+];
+
+// Lithuanian cities (current city of residence). Sorted by population, then alpha.
+const LT_CITIES = [
+  "Vilnius", "Kaunas", "Klaipėda", "Šiauliai", "Panevėžys",
+  "Alytus", "Marijampolė", "Mažeikiai", "Jonava", "Utena",
+  "Kėdainiai", "Telšiai", "Visaginas", "Tauragė", "Ukmergė",
+  "Plungė", "Kretinga", "Šilutė", "Palanga", "Radviliškis",
+  "Druskininkai", "Rokiškis", "Biržai", "Elektrėnai", "Gargždai",
+];
+
 type Existing = {
   id: string;
   name: string;
@@ -27,6 +49,8 @@ export function ReviewForm() {
   const [name, setName] = useState("");
   const [location, setLocation] = useState("");
   const [country, setCountry] = useState("");
+  const [cityOther, setCityOther] = useState(false);
+  const [countryOther, setCountryOther] = useState(false);
   const [rating, setRating] = useState(5);
   const [feedback, setFeedback] = useState("");
   const [hover, setHover] = useState(0);
@@ -52,6 +76,8 @@ export function ReviewForm() {
         setName(data.name ?? "");
         setLocation(data.location ?? "");
         setCountry(data.country ?? "");
+        setCityOther(!!data.location && !LT_CITIES.includes(data.location));
+        setCountryOther(!!data.country && !COUNTRIES.some((c) => c.name === data.country));
         setRating(data.rating ?? 5);
         setFeedback(data.feedback ?? "");
       } else {
@@ -68,6 +94,8 @@ export function ReviewForm() {
     e.preventDefault();
     setError(null);
     if (feedback.trim().length < 5) { setError("Please write at least a few words"); return; }
+    if (!location.trim()) { setError("Please enter your city"); return; }
+    if (!country.trim()) { setError("Please enter your home country"); return; }
     setSubmitting(true);
     try {
       const res = await fetch("/api/reviews", {
@@ -207,24 +235,60 @@ export function ReviewForm() {
           />
         </div>
         <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">City / Location</label>
-          <input
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
-            maxLength={120}
-            placeholder="Vilnius"
+          <label className="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">Current city in Lithuania <span className="text-red-400">*</span></label>
+          <select
+            value={cityOther ? "__other" : (LT_CITIES.includes(location) ? location : "")}
+            onChange={(e) => {
+              const v = e.target.value;
+              if (v === "__other") { setCityOther(true); setLocation(""); }
+              else { setCityOther(false); setLocation(v); }
+            }}
+            required={!cityOther}
             className="w-full px-3 py-2 rounded-lg border border-white/10 bg-black/30 text-gray-100 text-sm focus:border-amber-500/50 focus:outline-none"
-          />
+          >
+            <option value="" disabled>Select your city…</option>
+            {LT_CITIES.map((c) => <option key={c} value={c}>{c}</option>)}
+            <option value="__other">Other…</option>
+          </select>
+          {cityOther && (
+            <input
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              required
+              maxLength={120}
+              placeholder="Type your city"
+              className="mt-2 w-full px-3 py-2 rounded-lg border border-white/10 bg-black/30 text-gray-100 text-sm focus:border-amber-500/50 focus:outline-none"
+            />
+          )}
         </div>
         <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">Country</label>
-          <input
-            value={country}
-            onChange={(e) => setCountry(e.target.value)}
-            maxLength={80}
-            placeholder="Lithuania"
+          <label className="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">Home country <span className="text-red-400">*</span></label>
+          <select
+            value={countryOther ? "__other" : (COUNTRIES.find((c) => c.name === country)?.code ?? "")}
+            onChange={(e) => {
+              const v = e.target.value;
+              if (v === "__other") { setCountryOther(true); setCountry(""); }
+              else { setCountryOther(false); setCountry(COUNTRIES.find((c) => c.code === v)?.name ?? ""); }
+            }}
+            required={!countryOther}
             className="w-full px-3 py-2 rounded-lg border border-white/10 bg-black/30 text-gray-100 text-sm focus:border-amber-500/50 focus:outline-none"
-          />
+          >
+            <option value="" disabled>Select your country…</option>
+            {COUNTRIES.map((c) => (
+              <option key={c.code} value={c.code}>{c.flag} {c.name}</option>
+            ))}
+            <option value="__other">🌍 Other…</option>
+          </select>
+          {countryOther && (
+            <input
+              value={country}
+              onChange={(e) => setCountry(e.target.value)}
+              required
+              maxLength={80}
+              placeholder="Type your home country"
+              className="mt-2 w-full px-3 py-2 rounded-lg border border-white/10 bg-black/30 text-gray-100 text-sm focus:border-amber-500/50 focus:outline-none"
+            />
+          )}
         </div>
       </div>
 
