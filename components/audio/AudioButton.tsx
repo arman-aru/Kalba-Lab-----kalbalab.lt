@@ -50,9 +50,14 @@ export function AudioButton({
       onPlay?.();
       try {
         await speakLithuanian(text, rate, voiceId);
-      } catch {
-        setIsError(true);
-        setTimeout(() => setIsError(false), 3000);
+      } catch (err) {
+        // Interruption by another button click isn't a real failure — don't
+        // flash the error state for it.
+        const msg = err instanceof Error ? err.message : "";
+        if (msg !== "Aborted") {
+          setIsError(true);
+          setTimeout(() => setIsError(false), 3000);
+        }
       } finally {
         setIsPlaying(false);
       }

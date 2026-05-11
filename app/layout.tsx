@@ -76,6 +76,9 @@ export const metadata: Metadata = {
     shortcut: "/favicon_io/favicon.ico",
   },
   manifest: "/favicon_io/site.webmanifest",
+  verification: {
+    google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
+  },
   appleWebApp: {
     capable: true,
     title: "Kalba Lab",

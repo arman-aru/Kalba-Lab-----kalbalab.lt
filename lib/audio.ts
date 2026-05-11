@@ -1,14 +1,26 @@
 "use client";
 
-let currentAudio: HTMLAudioElement | null = null;
+// iOS Safari only "unlocks" the SPECIFIC HTMLAudioElement that was created
+// (and had .play() called on it) inside the original user gesture. New audio
+// elements created later silently fail or get queued. We work around this by
+// keeping ONE module-scoped element and just swapping its `src`.
+let sharedAudio: HTMLAudioElement | null = null;
+let activeReject: ((reason?: unknown) => void) | null = null;
 let currentUtterance: SpeechSynthesisUtterance | null = null;
 let cachedLtVoice: SpeechSynthesisVoice | null | undefined = undefined;
 
-// Google Translate's public TTS endpoint produces a real Lithuanian voice
-// (much better than the OS default, which usually has no `lt-LT` voice
-// installed and falls back to English). Works in any browser via <audio>.
+function getSharedAudio(): HTMLAudioElement {
+  if (sharedAudio) return sharedAudio;
+  const a = new Audio();
+  a.preload = "auto";
+  // Important on iOS: stay inline (don't fullscreen) and don't suspend on page changes.
+  a.setAttribute("playsinline", "");
+  a.crossOrigin = "anonymous";
+  sharedAudio = a;
+  return a;
+}
+
 function googleTtsUrl(text: string, slow = false, voiceId?: string): string {
-  // Proxied via our /api/tts route to avoid browser-side referer/CORS blocks.
   const params = new URLSearchParams({ text });
   if (slow) params.set("slow", "1");
   if (voiceId) params.set("voice", voiceId);
@@ -17,16 +29,36 @@ function googleTtsUrl(text: string, slow = false, voiceId?: string): string {
 
 function playViaGoogle(text: string, rate: number, voiceId?: string): Promise<void> {
   return new Promise((resolve, reject) => {
-    // For "slow" playback ask the upstream voice to speak slowly — that sounds
-    // more natural than scaling <audio>.playbackRate after the fact.
     const wantSlow = rate < 0.95;
-    const audio = new Audio(googleTtsUrl(text, wantSlow, voiceId));
-    audio.preload = "auto";
+    const audio = getSharedAudio();
+
+    // Detach previous one-shot listeners by cloning handlers via assignment.
+    const onEnded = () => { cleanup(); resolve(); };
+    const onError = () => { cleanup(); reject(new Error("Google TTS failed")); };
+    const cleanup = () => {
+      audio.removeEventListener("ended", onEnded);
+      audio.removeEventListener("error", onError);
+      if (activeReject === reject) activeReject = null;
+    };
+
+    audio.addEventListener("ended", onEnded, { once: true });
+    audio.addEventListener("error", onError, { once: true });
+
+    // Track the active rejector so stopSpeaking() can settle the promise
+    // (pause() alone fires neither ended nor error — would hang forever).
+    activeReject = (reason) => { cleanup(); reject(reason ?? new Error("Aborted")); };
+
+    audio.src = googleTtsUrl(text, wantSlow, voiceId);
     audio.playbackRate = wantSlow ? 1 : Math.max(0.5, Math.min(2, rate));
-    audio.onended = () => { if (currentAudio === audio) currentAudio = null; resolve(); };
-    audio.onerror = () => { if (currentAudio === audio) currentAudio = null; reject(new Error("Google TTS failed")); };
-    currentAudio = audio;
-    audio.play().catch(reject);
+    // Force iOS to actually load the new src instead of re-using the buffer
+    // from the previous play (which is what caused "same audio plays again").
+    audio.load();
+
+    const playResult = audio.play();
+    // Some browsers (older Safari) return undefined instead of a Promise.
+    if (playResult && typeof playResult.then === "function") {
+      playResult.catch((err) => { cleanup(); reject(err); });
+    }
   });
 }
 
@@ -54,7 +86,6 @@ function playViaSpeechSynthesis(text: string, rate: number): Promise<void> {
     const synth = window.speechSynthesis;
     const voice = await getLithuanianVoice();
     if (!voice) {
-      // No Lithuanian voice installed — refuse rather than mangle pronunciation in English.
       reject(new Error("No Lithuanian voice installed"));
       return;
     }
@@ -67,24 +98,29 @@ function playViaSpeechSynthesis(text: string, rate: number): Promise<void> {
     u.onend = () => { if (currentUtterance === u) currentUtterance = null; resolve(); };
     u.onerror = (e) => { if (currentUtterance === u) currentUtterance = null; reject(e); };
     currentUtterance = u;
+    // iOS Safari quirk: speechSynthesis sometimes refuses to start a new
+    // utterance until the queue is drained.
+    synth.cancel();
     synth.speak(u);
   });
 }
 
 export async function speakLithuanian(text: string, rate: number = 1, voiceId?: string): Promise<void> {
   if (typeof window === "undefined") throw new Error("No window");
+  // CRITICAL: prime the shared audio element synchronously during the user
+  // gesture. iOS Safari only grants playback permission to elements touched
+  // inside a click handler — even an empty .load() qualifies.
+  getSharedAudio();
   stopSpeaking();
-  // 1) Prefer the server TTS proxy — picks the requested voice from our catalog.
   try {
     await playViaGoogle(text, rate, voiceId);
     return;
   } catch {
-    // 2) Fall back to native synthesis ONLY if a real lt voice is installed.
     if (window.speechSynthesis) {
       try {
         await playViaSpeechSynthesis(text, rate);
         return;
-      } catch { /* swallow and rethrow below */ }
+      } catch { /* fall through */ }
     }
     throw new Error("Audio unavailable — install a Lithuanian voice in your OS or check your network connection.");
   }
@@ -92,9 +128,15 @@ export async function speakLithuanian(text: string, rate: number = 1, voiceId?: 
 
 export function stopSpeaking() {
   if (typeof window === "undefined") return;
-  if (currentAudio) {
-    try { currentAudio.pause(); currentAudio.currentTime = 0; } catch { /* noop */ }
-    currentAudio = null;
+  if (sharedAudio) {
+    try { sharedAudio.pause(); sharedAudio.currentTime = 0; } catch { /* noop */ }
+  }
+  // Reject the in-flight play promise so the caller's `finally` runs and the
+  // UI doesn't get stuck in the "playing" state.
+  if (activeReject) {
+    const r = activeReject;
+    activeReject = null;
+    r(new Error("Aborted"));
   }
   if (window.speechSynthesis) {
     window.speechSynthesis.cancel();
@@ -104,7 +146,7 @@ export function stopSpeaking() {
 
 export function isSpeaking(): boolean {
   if (typeof window === "undefined") return false;
-  if (currentAudio && !currentAudio.paused) return true;
+  if (sharedAudio && !sharedAudio.paused) return true;
   return window.speechSynthesis?.speaking ?? false;
 }
 
